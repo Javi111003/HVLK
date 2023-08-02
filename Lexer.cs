@@ -27,9 +27,9 @@ namespace Program
                 ReadChar();//leo el caracter actual
                 NextChar();//paso al siguiente 
 
-                if (Is_empty(src_char)&&temp!= string.Empty)
+                if (Is_empty(src_char))
                 {
-                    tokens.Add(temp);temp = string.Empty;
+                    tokens.Add(temp);temp = string.Empty; tokens.Add(temp);//añade el token anterior , el espacio vacio , y pasamos al proximo token
                 }
                 else if (Is_operator(src_char) && Is_operator(next_char))
                 {
@@ -39,7 +39,6 @@ namespace Program
                 {
                     temp += src_char; tokens.Add(temp); temp = string.Empty;
                 }
-            //    else if(Is_litup)
                 else
                 {
                     temp += src_char;
