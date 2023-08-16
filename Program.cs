@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Program
+namespace HVLK
 {
     class Program
     {
         public static void Main(string[] args)
-        {
-            string cadena = "if else hola a<= 10";
+       {
+            string cadena = "let x = 10 in print(x)";
 
+         
             Lexer.Tokenizar(cadena);
 
 
