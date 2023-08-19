@@ -14,12 +14,14 @@ namespace HVLK
         public static char src_char;//almacena el caracter actual 
         public static char next_char;//almacena el caracter siguiente
         public static List<string> Palabras_reservadas = new List<string>() { "true","false","let","number","print","sqrt","rand","sin","cos","exp","PI","E" };
+       public static string temp = string.Empty;//almacena el token hasta ser completado
         public enum TokenType
         {
             whitespace,
             vartoken,
-            lit,
-            num,
+            lit_string,
+            number,
+            identifier,
             op,
             token_sum,
             token_plus,
@@ -30,76 +32,66 @@ namespace HVLK
             keyvar,
             keyfunction,
             puntuation,
+            unknowed,
+
         }
-        public static List<Token> Tokenizar(string cad)
+        public static List<Token> Tokenizar(string _cadena)
         {
-            cadena = cad;
+            cadena = _cadena;
             List<Token> tokens = new List<Token>(); 
-            
-            string temp = string.Empty;//almacena el token hasta ser completado
-            
-          
+      
             while (!next_is_EOL())//mientras no sea fin de linea
             {
                 ReadChar();//leo el caracter actual
-                NextChar();//paso al siguiente para tener visualizacion de el en la toma de decisiones
-           
-                    if (src_char == '(')
-                    {
-                    tokens.Add(new Token("(", TokenType.leftparenthesis));
-                    }
-                    else if (src_char == ')')
-                    {
-                    tokens.Add(new Token(")", TokenType.rigthparenthesis));
-                    }
-                    else if (src_char == '+')
-                    {
-                    tokens.Add(new Token("+", TokenType.token_sum));
-                    }
-                    else if (src_char == '-')
-                    {
-                    tokens.Add(new Token("-", TokenType.token_minus));
-                    }
-                    else if (src_char == '/')
-                    {
-                    tokens.Add(new Token("/", TokenType.token_divide));
-                    }
-                    else if (src_char == '*')
-                    {
-                    tokens.Add(new Token("*", TokenType.token_plus));
-                    }
-                    else if (Is_operator(src_char) && Is_operator(next_char))
-                    {
-                        temp += src_char;
-                    }
-                    else if((Is_litlow(src_char) && next_char == '(')|| (Is_litup(src_char) && next_char == '('))
-                    {
-                    temp += src_char;tokens.Add(new Token(temp, TokenType.lit)); temp = string.Empty;
-                    }
-                    else if ((Is_num(src_char) && next_char == '('))
-                    {
-                    temp += src_char; tokens.Add(new Token(temp, TokenType.num)); temp = string.Empty;
-                    }
-                    else if ((Is_num(src_char) && next_is_EOL()) || Is_num(src_char) && Is_operator(next_char) || (Is_num(src_char) && Is_empty(next_char)))//cuando el token es num
-                    {
-                        temp += src_char; tokens.Add(new Token(temp, TokenType.num)); temp = string.Empty;
-                    }
-                    else if ((Is_litlow(src_char) && next_char==')' ) || (Is_litlow(src_char) && next_is_EOL()) || (Is_litup(src_char) && Is_empty(next_char)) || (Is_litlow(src_char) && Is_empty(next_char)) || (Is_litlow(src_char) && Is_operator(next_char)) || (Is_litup(src_char) && Is_operator(next_char)))  //es literal   
-                    {
-                        temp += src_char; tokens.Add(new Token(temp, TokenType.lit)); temp = string.Empty;
-                    }
-                    else if ((Is_litlow(src_char) && next_char == ')') || (Is_operator(src_char) && next_is_EOL()) || (Is_operator(src_char) && Is_empty(next_char)) || (Is_operator(src_char) && Is_num(next_char)) || (Is_operator(src_char) && Is_litlow(next_char)) || (Is_operator(src_char) && Is_litup(next_char)))//es operador 
-                    {
-                        temp += src_char; tokens.Add(new Token(temp, TokenType.op)); temp = string.Empty;
-                    }
-                    else if (Is_empty(src_char))
-                    {
+ 
+                if (Is_empty(src_char))
+                {
+                    NextChar();
                     tokens.Add(new Token(temp, TokenType.whitespace)); temp = string.Empty;//añade el espacio vacio , y pasamos al proximo token
-                    }
-                    else//aun no se ha completado el token para ser add
-                    {
-                        temp += src_char;
-                    }
+                }
+                else if (src_char == '(')
+                {
+                    tokens.Add(new Token("(", TokenType.leftparenthesis));
+                }
+                else if (src_char == ')')
+                {
+                    tokens.Add(new Token(")", TokenType.rigthparenthesis));
+                }
+                else if (src_char == '+')
+                {
+                    tokens.Add(new Token("+", TokenType.token_sum));
+                }
+                else if (src_char == '-')
+                {
+                    tokens.Add(new Token("-", TokenType.token_minus));
+                }
+                else if (src_char == '/')
+                {
+                    tokens.Add(new Token("/", TokenType.token_divide));
+                }
+                else if (src_char == '*')
+                {
+                    tokens.Add(new Token("*", TokenType.token_plus));
+                }
+                else if (Is_operator(src_char))
+                {
+                    tokens.Add(new Token(Extract_Operator(), TokenType.op)); temp = string.Empty;
+                    NextChar();
+                }
+                else if (Is_num(src_char))
+                {
+                    tokens.Add(new Token(Extract_Number(), TokenType.number)); temp = string.Empty;
+                    NextChar();
+                }
+                else if (Is_litup(src_char) || Is_litlow(src_char))
+                {
+                    tokens.Add(new Token(Extract_Identifier(), TokenType.identifier)); temp = string.Empty;
+                    NextChar();
+                }
+                else//aun no se ha completado el token para ser add
+                {
+                    temp += src_char;
+                }
                 
             }
   
@@ -178,7 +170,7 @@ namespace HVLK
         }
         public static bool Is_litlow(char c)//si es letra en minuscula
         {
-            char[] Litlow = new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+            char[] Litlow = new char[] { '_','a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'ñ', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
 
             for (int i = 0; i < Litlow.Length; i++)
             {
@@ -197,5 +189,127 @@ namespace HVLK
             }
             return false ;
         }
+        public static string Extract_Identifier()
+        {                  
+            while (Is_litup(src_char) || Is_litlow(src_char))
+            {
+                    temp += src_char;
+                NextChar();
+                if (!next_is_EOL())
+                {
+                    ReadChar();
+                }
+                else
+                {
+                    return temp;
+                }
+            }
+            return temp;
+        }
+        public static string Extract_Operator()//arreglar dobles operadores
+        {
+
+            switch (src_char)
+            {
+                case '<':
+                    temp += src_char;
+                    NextChar();
+                    if (!next_is_EOL())
+                    {
+                        ReadChar();
+
+                        if (src_char == '=')
+                        {
+
+                            temp += src_char;
+                            return temp;
+                        }
+                        else
+                        {
+                            idx_next_char = idx_next_char - 1;
+                            return temp;
+                        }
+                    }
+                    else
+                    {
+                        return temp;
+                    }
+
+
+                case '>':
+                    temp += src_char;
+                    NextChar();
+                    if (!next_is_EOL())
+                    {
+                        ReadChar();
+
+                        if (src_char == '=')
+                        {
+
+                            temp += src_char;
+                            return temp;
+                        }
+                        else
+                        {
+                            idx_next_char = idx_next_char - 1;
+                            return temp;
+                        }
+                    }
+                    else
+                    {
+                        return temp;
+                    }
+
+
+                case '=':
+                    temp += src_char;
+                    NextChar();
+                    if (!next_is_EOL())
+                    {
+                        ReadChar();
+
+                        if (src_char == '='||src_char=='>')
+                        {
+
+                            temp += src_char;
+                            return temp;
+                        }
+                        else
+                        {
+                            idx_next_char = idx_next_char - 1;
+                            return temp;
+                        }
+                    }
+                    else
+                    {
+                        return temp;
+                    }
+
+                default:
+                    temp += src_char;
+                    return temp;
+
+
+
+            }
+        }
+            public static string Extract_Number()
+            {
+                while (Is_num(src_char))
+                {
+                    temp += src_char;
+                    NextChar();
+                    if (!next_is_EOL())
+                    {
+                        ReadChar();
+                    }
+                    else
+                    {
+                    return temp;
+                    }
+                }
+                return temp;
+            }
+        
     }
 }
