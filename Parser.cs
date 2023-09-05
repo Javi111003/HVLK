@@ -13,12 +13,20 @@ namespace HVLK
               
         public class Parser
         {
-            Token[] tokens;
+            List<Token> tokens;
             int nextToken;
 
-            bool Match(Lexer.TokenType type)
+        public bool Parse(List<Token> tokens)
+        {
+            this.tokens = tokens;
+            nextToken = 0;
+
+            return E() && nextToken == tokens.Count;
+        }
+
+        bool Match(Lexer.TokenType type)
             {              
-                return tokens[nextToken++].Type == type;
+                return nextToken+1<=tokens.Count && tokens[nextToken++].Type == type;
             }
             
              bool E()
@@ -37,15 +45,15 @@ namespace HVLK
                 else return false;
                 
             }
-             bool E1()//parsea E->T
+             bool E3()//parsea E->T
             {
                 return T();   
             }
-            bool E2()//Parsea E->T+E
+            bool E1()//Parsea E->T+E
             {
                 return T() && Match(Lexer.TokenType.sum) && E();
             }
-            bool E3()
+            bool E2()
             {
                 return T() && Match(Lexer.TokenType.minus) && E();
             }
@@ -66,7 +74,7 @@ namespace HVLK
                 else return false;
                 
             }
-            bool T1()//Parsea F
+            bool T4()//Parsea F
             {
                 return F();
             }
@@ -78,7 +86,7 @@ namespace HVLK
             {
                 return F() && Match(Lexer.TokenType.divide) && T();
             }
-            bool T4()//Parsea F%T
+            bool T1()//Parsea F%T
             {
                 return F() && Match(Lexer.TokenType.residous) && T();
             }
@@ -97,25 +105,20 @@ namespace HVLK
                 else return false;
             }
 
-            bool F3()//Parsea (E)
+            bool F2()//Parsea (E)
             {
                 return Match(Lexer.TokenType.leftparenthesis) && E() && Match(Lexer.TokenType.rigthparenthesis);
             }
-            bool F2()//Parsea -F
+            bool F1()//Parsea -F
             {
                 return Match(Lexer.TokenType.minus) && F();
             }
-            bool F1()//Parsea num
+            bool F3()//Parsea num
             {
+            
                 return Match(Lexer.TokenType.number);
             }
-           public bool Parse(Token[] tokens)
-            {
-                this.tokens = tokens;
-                nextToken = 0;
-
-                return E() && nextToken == tokens.Length;
-            }
+         
         }
 
     

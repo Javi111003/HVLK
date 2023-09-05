@@ -10,10 +10,20 @@ namespace HVLK
     {
         public static void Main(string[] args)
        {
-            string cadena = " let x= 2.5 in print(x)";
+            string cadena =Console.ReadLine();
 
+            List<Token> tokens = new List<Token>();
+           tokens= Lexer.Tokenizar(cadena);
+            Parser recursive_parser = new Parser();
 
-            Lexer.Tokenizar(cadena);
+            if (recursive_parser.Parse(tokens))
+            {
+                Console.WriteLine("cadena correcta");
+            }
+            else
+            {
+                Console.WriteLine("bad");
+            }
             
             
         }
