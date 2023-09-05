@@ -8,8 +8,8 @@ namespace HVLK
 {
     //Gramática libre de contexto 
     //Expression E-> T+E | T-E | T
-    //Termino T-> F * T | F / T | F % T | F
-    //Factor F -> -F | (S) | num    
+    //Termino T-> F * T | F / T | F % T | F^T | F
+    //Factor F -> -F | (E) | num    
               
         public class Parser
         {
@@ -31,7 +31,7 @@ namespace HVLK
             
              bool E()
             {
-                //Parsea un no-terminaal E
+                //Parsea un no-terminal E
                 int currToken = nextToken;
                 if(E1()) return true;
 
@@ -53,7 +53,7 @@ namespace HVLK
             {
                 return T() && Match(Lexer.TokenType.sum) && E();
             }
-            bool E2()
+            bool E2()//Parsea E->T-E
             {
                 return T() && Match(Lexer.TokenType.minus) && E();
             }
@@ -71,12 +71,19 @@ namespace HVLK
                 nextToken = currToken;
                 if (T4()) return true;
 
-                else return false;
+                nextToken = currToken;
+                if (T5()) return true;
+
+            else return false;
                 
             }
-            bool T4()//Parsea F
+            bool T5()//Parsea F
             {
                 return F();
+            }
+            bool T4()//Parsea F^T
+            {
+            return F() && Match(Lexer.TokenType.power) && T();
             }
             bool T2()//Parsea F*T
             {
