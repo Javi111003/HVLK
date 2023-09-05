@@ -10,11 +10,11 @@ namespace HVLK
     {
         public static void Main(string[] args)
        {
-            string cadena = " _mi_variable 4 >= 2";
+            string cadena = " let x= 2.5 in print(x)";
 
-         
+
             Lexer.Tokenizar(cadena);
-
+            
             
         }
     }

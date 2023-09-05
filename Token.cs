@@ -11,7 +11,8 @@ namespace HVLK
     {
         private string _value=string.Empty;
         private  Lexer.TokenType _type;
-   
+       
+
         public Token(string valor,Lexer.TokenType tipo)
         {
             _value = valor;
