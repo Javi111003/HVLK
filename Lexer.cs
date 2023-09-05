@@ -35,6 +35,7 @@ namespace HVLK
             unknowed,
             keyword,
             residous,
+            token_EOF,
 
         }
         public static List<Token> Tokenizar(string _cadena)
@@ -126,6 +127,8 @@ namespace HVLK
 
             }
             
+            
+            tokens.Add(new Token("", TokenType.token_EOF)); cadena= string.Empty;idx_next_char= 0;
             return tokens;
         }
 

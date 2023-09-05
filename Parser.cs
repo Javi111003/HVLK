@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace HVLK
 {
     //Gramática libre de contexto 
-    //Expression E-> T | T+E | T-E
+    //Expression E-> T+E | T-E | T
     //Termino T-> F * T | F / T | F % T | F
     //Factor F -> -F | (S) | num    
               
@@ -21,7 +21,7 @@ namespace HVLK
             this.tokens = tokens;
             nextToken = 0;
 
-            return E() && nextToken == tokens.Count;
+            return E() && Match(Lexer.TokenType.token_EOF);
         }
 
         bool Match(Lexer.TokenType type)
