@@ -16,7 +16,7 @@ namespace HVLK
 
                 List<Token> tokens = new List<Token>();
                 tokens = Lexer.Tokenizar(cadena);
-                Parser recursive_parser = new Parser();
+                RecursiveParser recursive_parser = new RecursiveParser();
 
                 if (recursive_parser.Parse(tokens))
                 {

@@ -36,6 +36,7 @@ namespace HVLK
             keyword,
             residous,
             token_EOF,
+            token_EOL,
 
         }
         public static List<Token> Tokenizar(string _cadena)
@@ -51,7 +52,7 @@ namespace HVLK
                 {
                     NextChar(); temp = string.Empty;
                 }
-                else if (src_char == '"')
+                else if (src_char == '\"')
                 {
                     tokens.Add(new Token(Extract_String(), TokenType.lit_string)); temp = string.Empty;
                 }
@@ -79,6 +80,10 @@ namespace HVLK
                         tokens.Add(new Token("//", TokenType.comment));
                     }
                     tokens.Add(new Token("/", TokenType.divide));
+                }
+                else if (src_char == '\n')
+                {
+                    tokens.Add(new Token("\n", TokenType.token_EOL)); NextChar();
                 }
                 else if (src_char == '*')
                 {
@@ -225,7 +230,7 @@ namespace HVLK
         }
         public static string Extract_Identifier()
         {
-            while (Is_litup(src_char) || Is_litlow(src_char))
+            while (Is_litup(src_char) || Is_litlow(src_char)||Is_num(src_char))
             {
                 temp += src_char;
                 NextChar();
@@ -350,7 +355,12 @@ namespace HVLK
         }
         public static string Extract_String()
         {
-            do
+            NextChar();
+            if (!next_is_EOL())
+            {
+                ReadChar();
+            }
+            while (src_char != '\"') 
             {
                 temp += src_char;
                 NextChar();
@@ -359,10 +369,13 @@ namespace HVLK
                 {
                     ReadChar();
                 }
+                else
+                {
+                    return temp;
+                }
 
-            } while (src_char != '"');  
-
-            temp+=src_char;
+            }
+          NextChar();
             return temp;
         }
     }

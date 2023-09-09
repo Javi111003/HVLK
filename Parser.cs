@@ -7,11 +7,20 @@ using System.Threading.Tasks;
 namespace HVLK
 {
     //Gramática libre de contexto 
+    //Program P-> S_L
+    //Statement_list S_L -> S | S ; S_L
+    //Stat S -> l_v|d_f|p_s
+    //Argument List A_L-> id | id ","
     //Expression E-> T+E | T-E | T
     //Termino T-> F * T | F / T | F % T | F^T | F
-    //Factor F -> -F | (E) | num    
+    //Factor F -> -F | (E) | A
+    //Atom A-> number|ID|func-call
               
-        public class Parser
+    interface IParser
+    {
+        bool Parse(List<Token>tokens);
+    }
+        public class RecursiveParser:IParser
         {
             List<Token> tokens;
             int nextToken;
@@ -21,15 +30,96 @@ namespace HVLK
             this.tokens = tokens;
             nextToken = 0;
 
-            return E() && Match(Lexer.TokenType.token_EOF);
+            return P() && Match(Lexer.TokenType.token_EOF);
         }
 
         bool Match(Lexer.TokenType type)
             {              
                 return nextToken+1<=tokens.Count && tokens[nextToken++].Type == type;
             }
+        bool Match_value(string value)
+        {
+            return nextToken + 1 <= tokens.Count && tokens[nextToken++].Value == value;
+        }
             
-             bool E()
+        bool P()
+        {
+            return S_L();
+        }
+        bool S_L()
+        {
+            int currToken = nextToken;
+            if (S_L1()) return true;
+
+            nextToken = currToken;
+            if (S_L2()) return true;
+
+
+            else return false;
+
+        }
+        bool S_L2()
+        {
+            return S() && Match_value(";");
+        }
+        bool S_L1()
+        {
+            return S() && Match_value(";") && S_L();
+        }
+        bool S()
+        {
+            int currToken = nextToken;
+            if (S1()) return true;
+
+            nextToken = currToken;
+            if (S2()) return true;
+
+            nextToken = currToken;
+            if (S3()) return true;
+
+            nextToken = currToken;
+            if (S4()) return true;
+
+
+            else return false;
+
+        }
+        bool S1()
+        {
+            return Match_value("let") && Match(Lexer.TokenType.identifier) && Match_value("=") && E() && Match_value("in") && S();
+        }
+        bool S2()
+        {
+            return Match_value("function") && Match(Lexer.TokenType.identifier) && Match(Lexer.TokenType.leftparenthesis) && A_L() && Match(Lexer.TokenType.rigthparenthesis) && Match_value("=>") && E();
+        }
+        bool S3()
+        {
+            return Match_value("print") && Match(Lexer.TokenType.leftparenthesis) && E() && Match(Lexer.TokenType.rigthparenthesis);
+        }
+        bool S4()
+        {
+            return E();
+        }
+
+        bool A_L()
+        {
+            int currToken = nextToken;
+            if (A_L1()) return true;
+
+            nextToken = currToken;
+            if (A_L2()) return true;
+
+            else return false;
+        }
+        bool A_L1()
+        {
+            return Match(Lexer.TokenType.identifier) && Match_value(",") && A_L();
+        }
+        bool A_L2()
+        {
+            return Match(Lexer.TokenType.identifier);
+        }
+        bool E()
             {
                 //Parsea un no-terminal E
                 int currToken = nextToken;
@@ -120,13 +210,64 @@ namespace HVLK
             {
                 return Match(Lexer.TokenType.minus) && F();
             }
-            bool F3()//Parsea num
+            bool F3()//Parsea Atom
             {
             
-                return Match(Lexer.TokenType.number);
+                return A();
             }
-         
+            bool A()
+            {
+            int currToken = nextToken;
+            if (A1()) return true;//Parsea number
+
+            nextToken = currToken;
+            if (A2()) return true;//Parsea func_call
+
+            nextToken = currToken;
+            if (A3()) return true;//Parsea id
+
+            nextToken = currToken;
+            if (A4()) return true;//Parsea string
+
+            else return false;
+            }
+        bool A1()
+        {
+            return Match(Lexer.TokenType.number);
         }
+        bool A3()
+        {
+            return Match(Lexer.TokenType.identifier);
+        }
+        bool A2()
+        {
+            return Match(Lexer.TokenType.identifier) && Match(Lexer.TokenType.leftparenthesis) && E_L() && Match(Lexer.TokenType.rigthparenthesis);
+        }
+        bool A4()
+        {
+            return Match(Lexer.TokenType.lit_string);
+        }
+        bool E_L()
+        {
+            int currToken = nextToken;
+            if (E_L1()) return true;
+
+            nextToken = currToken;
+            if (E_L2()) return true;
+
+            else return false;
+        }
+        bool E_L1()
+        {
+            return E() && Match_value(",") && E_L();
+        }
+        bool E_L2()
+        {
+            return E();
+        }
+
+
+    }
 
     
 }
