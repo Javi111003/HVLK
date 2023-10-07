@@ -13,7 +13,9 @@ namespace HVLK
         public static int idx_next_char = 0;//puntero que indica en que posicion de la cadena estamos
         public static char src_char;//almacena el caracter actual 
         public static char next_char;//almacena el caracter siguiente
-        public static List<string> Palabras_reservadas = new List<string>() { "true", "false", "let", "number", "print", "sqrt", "rand", "sin", "cos", "exp", "PI", "E", "in", "function", "if","else" };
+
+        public static List<string> Maths = new List<string>() { "sqrt", "rand", "sen", "cos", "exp" ,"log"};
+        public static List<string> Palabras_reservadas = new List<string>() { "true", "false", "let", "number", "print", "PI", "E", "in", "function", "if","else" };
         public static string temp = string.Empty;//almacena el token hasta ser completado
         public enum TokenType
         {
@@ -28,6 +30,9 @@ namespace HVLK
             divide,
             minus,
             power,
+            Math_EXP,
+            token_and,
+            token_or,
             leftparenthesis,
             rigthparenthesis,
             keyfunction,
@@ -35,6 +40,9 @@ namespace HVLK
             unknowed,
             keyword,
             residous,
+            concat,
+            coma,
+            error,
             token_EOF,
             token_EOL,
 
@@ -52,88 +60,123 @@ namespace HVLK
                 {
                     NextChar(); temp = string.Empty;
                 }
+                else if (src_char == ',')
+                {
+                    int i = idx_next_char;
+                    tokens.Add(new Token(",", TokenType.coma,i)); NextChar();
+                }
+                else if (src_char == '@')
+                {
+                    int i = idx_next_char;
+                    tokens.Add(new Token("@", TokenType.concat,i)); NextChar();
+                }
                 else if (src_char == '\"')
                 {
-                    tokens.Add(new Token(Extract_String(), TokenType.lit_string)); temp = string.Empty;
+                    int i = idx_next_char;
+                    tokens.Add(new Token(Extract_String(), TokenType.lit_string,i)); temp = string.Empty;
                 }
                 else if (src_char == '(')
                 {
-                    tokens.Add(new Token("(", TokenType.leftparenthesis)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token("(", TokenType.leftparenthesis,i)); NextChar();
                 }
                 else if (src_char == ')')
                 {
-                    tokens.Add(new Token(")", TokenType.rigthparenthesis)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token(")", TokenType.rigthparenthesis,i)); NextChar();
                 }
                 else if (src_char == '+')
                 {
-                    tokens.Add(new Token("+", TokenType.sum)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token("+", TokenType.sum,i)); NextChar();
                 }
                 else if (src_char == '-')
                 {
-                    tokens.Add(new Token("-", TokenType.minus)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token("-", TokenType.minus,i)); NextChar();
                 }
                 else if (src_char == '/')
                 {
+                    int i = idx_next_char;
                     NextChar();
                     if (next_char == '/')
                     {
-                        tokens.Add(new Token("//", TokenType.comment));
+                        NextChar();break;
                     }
-                    tokens.Add(new Token("/", TokenType.divide));
+                    tokens.Add(new Token("/", TokenType.divide,i));
                 }
                 else if (src_char == '\n')
                 {
-                    tokens.Add(new Token("\n", TokenType.token_EOL)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token("\n", TokenType.token_EOL,i)); NextChar();
                 }
                 else if (src_char == '*')
                 {
-                    tokens.Add(new Token("*", TokenType.mult)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token("*", TokenType.mult,i)); NextChar();
                 }
                 else if (src_char == '^')
                 {
-                    tokens.Add(new Token("^", TokenType.power)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token("^", TokenType.power,i)); NextChar();
                 }
                 else if (src_char == '%')
                 {
-                    tokens.Add(new Token("%", TokenType.residous)); NextChar();
+                    int i = idx_next_char;
+                    tokens.Add(new Token("%", TokenType.residous,i)); NextChar();
+                }
+                else if (src_char == '&')
+                {
+                    int i = idx_next_char;
+                    tokens.Add(new Token("&", TokenType.token_and, i)); NextChar();
+                }
+                else if (src_char == '|')
+                {
+                    int i = idx_next_char;
+                    tokens.Add(new Token("|", TokenType.token_or, i)); NextChar();
                 }
                 else if (Is_operator(src_char))
                 {
-                    tokens.Add(new Token(Extract_Operator(), TokenType.op)); temp = string.Empty;
+                    int i = idx_next_char;
+                    tokens.Add(new Token(Extract_Operator(), TokenType.op,i)); temp = string.Empty;
                     NextChar();
                 }
                 else if (Is_num(src_char))
                 {
-                    tokens.Add(new Token(Extract_Number(), TokenType.number)); temp = string.Empty;
+                    int i = idx_next_char;
+                    tokens.Add(new Token(Extract_Number(), TokenType.number,i)); temp = string.Empty;
 
                 }
                 else if (Is_litup(src_char) || Is_litlow(src_char))
                 {
+                    int i = idx_next_char;
                     temp = Extract_Identifier();
 
-                    if (!Restricted_word(temp))
+                    if (Restricted_word(temp))
                     {
-                        tokens.Add(new Token(temp, TokenType.identifier)); temp = string.Empty;
-
+                        tokens.Add(new Token(temp, TokenType.keyword, i)); temp = string.Empty;
+                    }
+                    else if (Math_func(temp))
+                    {
+                        tokens.Add(new Token(temp, TokenType.Math_EXP, i)); temp = string.Empty;
                     }
                     else
                     {
-                        tokens.Add(new Token(temp, TokenType.keyword)); temp = string.Empty;
-
+                        tokens.Add(new Token(temp, TokenType.identifier, i)); temp = string.Empty;                              
                     }
-
                 }
                 else//aun no se ha completado el token para ser add
                 {
+                    int i = idx_next_char;
                     temp += src_char;
-                    tokens.Add(new Token(temp, TokenType.unknowed)); temp = string.Empty;
+                    tokens.Add(new Token(temp, TokenType.unknowed,i)); temp = string.Empty;
                     NextChar();
                 }
 
             }
             
             
-            tokens.Add(new Token("", TokenType.token_EOF)); cadena= string.Empty;idx_next_char= 0;
+            tokens.Add(new Token("", TokenType.token_EOF,idx_next_char)); cadena= string.Empty;idx_next_char= 0;
             return tokens;
         }
 
@@ -162,7 +205,7 @@ namespace HVLK
 
         public static bool Is_operator(char c)
         {
-            char[] operadores = new char[] { '+', '*', '<', '>', '=', '/', '%','^' };
+            char[] operadores = new char[] { '+', '*', '<', '>', '=', '/', '%','^','!','@' };
 
             for (int i = 0; i < operadores.Length; i++)
             {
@@ -223,6 +266,14 @@ namespace HVLK
         public static bool Restricted_word(string tok)
         {
             if (Palabras_reservadas.Contains(tok))
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool Math_func(string tok)
+        {
+            if (Maths.Contains(tok))
             {
                 return true;
             }
@@ -308,6 +359,29 @@ namespace HVLK
                         ReadChar();
 
                         if (src_char == '=' || src_char == '>')
+                        {
+
+                            temp += src_char;
+                            return temp;
+                        }
+                        else
+                        {
+                            idx_next_char = idx_next_char - 1;
+                            return temp;
+                        }
+                    }
+                    else
+                    {
+                        return temp;
+                    }
+                case '!':
+                    temp += src_char;
+                    NextChar();
+                    if (!next_is_EOL())
+                    {
+                        ReadChar();
+
+                        if (src_char == '=')
                         {
 
                             temp += src_char;

@@ -11,12 +11,14 @@ namespace HVLK
     {
         private string _value=string.Empty;
         private  Lexer.TokenType _type;
+        private int _index;
        
 
-        public Token(string valor,Lexer.TokenType tipo)
+        public Token(string valor,Lexer.TokenType tipo,int i)
         {
             _value = valor;
             _type=tipo;
+            _index = i;
 
         }
 
@@ -28,6 +30,10 @@ namespace HVLK
         public  Lexer.TokenType Type
         {
             get { return _type; } 
+        }
+        public int Index
+        {
+            get { return _index; }
         }
     }
 }

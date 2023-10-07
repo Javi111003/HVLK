@@ -9,23 +9,19 @@ namespace HVLK
     class Program
     {
         public static void Main(string[] args)
-       {
-            while (true)
+       {            
+            while (true)//arreglar log y exp,ver booleans y como evaluan
             {
-                string cadena = Console.ReadLine();
-
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(" :) >>>");
+                string line = Console.ReadLine();      
+                
                 List<Token> tokens = new List<Token>();
-                tokens = Lexer.Tokenizar(cadena);
+                tokens = Lexer.Tokenizar(line);
                 RecursiveParser recursive_parser = new RecursiveParser();
-
-                if (recursive_parser.Parse(tokens))
-                {
-                    Console.WriteLine("cadena correcta");
-                }
-                else
-                {
-                    Console.WriteLine("bad");
-                }
+                object result = recursive_parser.Parse(tokens).Evaluate();
+                Console.WriteLine(result);
+                Contexto.Reset();
             }
         }
     }
