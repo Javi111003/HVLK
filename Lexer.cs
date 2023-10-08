@@ -33,6 +33,7 @@ namespace HVLK
             Math_EXP,
             token_and,
             token_or,
+            token_negation,
             leftparenthesis,
             rigthparenthesis,
             keyfunction,
@@ -45,6 +46,7 @@ namespace HVLK
             error,
             token_EOF,
             token_EOL,
+            token_EOS,
 
         }
         public static List<Token> Tokenizar(string _cadena)
@@ -110,6 +112,11 @@ namespace HVLK
                     int i = idx_next_char;
                     tokens.Add(new Token("\n", TokenType.token_EOL,i)); NextChar();
                 }
+                else if(src_char==';')
+                {
+                    int i = idx_next_char;
+                    tokens.Add(new Token(";", TokenType.token_EOS,i)); NextChar();
+                }
                 else if (src_char == '*')
                 {
                     int i = idx_next_char;
@@ -134,6 +141,11 @@ namespace HVLK
                 {
                     int i = idx_next_char;
                     tokens.Add(new Token("|", TokenType.token_or, i)); NextChar();
+                }
+                else if (src_char == '!')
+                {
+                    int i = idx_next_char;
+                    tokens.Add(new Token("!", TokenType.token_negation, i)); NextChar();
                 }
                 else if (Is_operator(src_char))
                 {
@@ -205,7 +217,7 @@ namespace HVLK
 
         public static bool Is_operator(char c)
         {
-            char[] operadores = new char[] { '+', '*', '<', '>', '=', '/', '%','^','!','@' };
+            char[] operadores = new char[] { '<', '>', '='};
 
             for (int i = 0; i < operadores.Length; i++)
             {

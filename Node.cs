@@ -120,11 +120,11 @@
     }
 	public class BinaryExpr : Expression
 	{
-		public Lexer.TokenType Op;
+		public Token Op;
 		public Expression MI;
 		public Expression MD;
 
-		public BinaryExpr(Lexer.TokenType op, Expression L, Expression R)
+		public BinaryExpr(Token op, Expression L, Expression R)
 		{
 			Op = op;
 			MI = L;
@@ -132,7 +132,7 @@
 		}
 		public override object Evaluate()
 		{
-			switch (Op)
+			switch (Op.Type)
 			{
 				case Lexer.TokenType.sum: return (double)MI.Evaluate() + (double)MD.Evaluate();
 
@@ -146,16 +146,30 @@
 
 				case Lexer.TokenType.power: return Math.Pow((double)MI.Evaluate() ,(double)MD.Evaluate());
 
-				default:return 0;
+				default:return Evaluateboolean();
 
+			}
+		}
+		public object Evaluateboolean()
+		{
+			switch(Op.Value)
+			{
+				case ">": return (bool)((double)MI.Evaluate() > (double)MD.Evaluate());
+				case ">=": return (bool)((double)MI.Evaluate() >= (double)MD.Evaluate());
+				case "<": return (bool)((double)MI.Evaluate() < (double)MD.Evaluate());
+				case "<=": return (bool)((double)MI.Evaluate() <= (double)MD.Evaluate());
+				case "==": return (bool)((double)MI.Evaluate() == (double)MD.Evaluate());
+				case "!=": return (bool)((double)MI.Evaluate() != (double)MD.Evaluate());
+
+				default:return 0;
 			}
 		}
 	}
 	public class UnaryExpression : Expression
     {
-		Lexer.TokenType Op;
+		Token Op;
 		Expression MD;
-		public UnaryExpression(Lexer.TokenType op,Expression e)
+		public UnaryExpression(Token op,Expression e)
         {
 			Op = op;
 			MD= e;
@@ -163,24 +177,21 @@
         }
         public override object Evaluate()
         {
-            if (Op == Lexer.TokenType.minus)
+            if (Op.Type == Lexer.TokenType.minus)
             {
 				return -(double)MD.Evaluate();
             }
-			else if (Op == Lexer.TokenType.sum)
+			else if (Op.Type == Lexer.TokenType.sum)
             {
 				return MD;
             }
+			else if(Op.Value=="!")
+			{
+				return !(bool)MD.Evaluate();
+			}
 			return MD;
         }
     }
-	/*public class Sum : BinaryExpr
-    {
-	public Sum(Expression L, Expression R) : base(Lexer.TokenType.sum, L, R)
-        {
-        }
-    }
-	*/
 	public class Func_call : Expression
 	{
 		public string identifier;
@@ -281,17 +292,21 @@
 	public class If_Else_Exp : Expression
 	{
 		Expression condition;
-		Expression in_Exp;
+		Expression if_Exp;
 		Expression else_Exp;
 		public If_Else_Exp(Expression cond,Expression inE,Expression elseE)
         {
 			condition = cond;
-			in_Exp = inE;
+			if_Exp = inE;
 			else_Exp = elseE;
         }
-        public override object Evaluate()///////////////////Falta
+        public override object Evaluate()
         {
-            throw new NotImplementedException();
+            if((bool)condition.Evaluate())
+			{
+				return if_Exp.Evaluate();
+			}
+			return else_Exp.Evaluate();
         }
     }
 	public class Math_Func : Expression

@@ -59,6 +59,8 @@ namespace HVLK
                 case Lexer.TokenType.sum:
                 case Lexer.TokenType.minus:
                     return 3;
+                case Lexer.TokenType.token_negation:
+                    return 1;
                 default:
                     return 0;
             }
@@ -177,7 +179,10 @@ namespace HVLK
             Match(Lexer.TokenType.rigthparenthesis);
             Match_value("=>");
             var Corpus=ParseStat();
-
+       /*    if(Contexto.FunctionDefined(name))
+            {
+            Console.WriteLine("Semantic error:the function {0} is already defined",name);return null;
+            }*/
             return new Def_Func(name, args, Corpus);
             //Falta definirla 
         }
@@ -187,7 +192,7 @@ namespace HVLK
             var unaryOperatorPrecedence = GetUnaryOperatorPrecedence(tokens[nextToken].Type);
             if (unaryOperatorPrecedence != 0 && unaryOperatorPrecedence >= parentPrecedence)
             {
-                var operatorToken = tokens[nextToken++].Type;
+                var operatorToken = tokens[nextToken++];
                 var operand = ParseExp(unaryOperatorPrecedence);
                 left = new UnaryExpression(operatorToken, operand);
             }
@@ -197,22 +202,12 @@ namespace HVLK
                 var precedence = GetBinaryOperatorPrecedence(tokens[nextToken].Type);
                 if (precedence == 0 || precedence <= parentPrecedence) break;
 
-                var operatorToken = tokens[nextToken++].Type;
+                var operatorToken = tokens[nextToken++];
                 var right = ParseExp(precedence);
                 left = new BinaryExpr(operatorToken,left, right);
             }
             return left;
         }
-   /*     Expression ParseExpLV1()
-        {
-            Expression newLeft = ParseExpLV2();
-            Expression exp = ParseExpLV1_(newLeft);
-            return exp;
-        }
-        Expression ParseExpLV1_(Expression left)
-        {
-            Expression exp = ParseAdd(left);
-        }*/
         Expression ParseExpAtomicLevel()//agregar llamado a funcion matematica
         {
             int currToken = nextToken;
