@@ -208,9 +208,11 @@ namespace HVLK
 		}
 		public override object Evaluate()
 		{
+			
 			object result=null;
 			foreach(var item in Contexto.function_scope)
 			{
+				List<Tuple<string,Expression>> aux = new List<Tuple<string,Expression>>();
 				if (item.Item1 == identifier)
 				{
 					if (item.Item2.Count != args.Count)
@@ -219,18 +221,24 @@ namespace HVLK
                     }
 					for(int i = 0; i < args.Count; i++)
 					{
-						var a = args[i].Evaluate(); //Evaluar antes de llevar a expresion para el proximo llamado si no , stackoverflow
+						var a = args[i].Evaluate();
 						var toks = Lexer.Tokenizar(a.ToString());
 						var l = new RecursiveParser(toks);
 						var exp = l.ParseExp();
-						Contexto.variables_scope.Add(new Tuple<string,Expression>(item.Item2[i].Value, exp));
+						aux.Add(new Tuple<string,Expression>(item.Item2[i].Value, exp));
 					}
 					Program.MAX_IT++;
-					if(Program.MAX_IT == 2500)
+					/*if(Program.MAX_IT == 25000)
 					{
 						Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +2500 function calls on line :", 1));break;
+					}*/
+					for (int i = 0; i < aux.Count; i++)
+					{
+						Contexto.variables_scope.Add(aux[i]);
 					}
+					aux.Clear();
                     result = item.Item3.Evaluate();
+					Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
 					return result;
 				}
 			}
