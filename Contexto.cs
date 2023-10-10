@@ -9,7 +9,7 @@ namespace HVLK
     public class Contexto
     {
         public static List<Tuple<string,Expression>>variables_scope= new();
-        public static List<Tuple<string, List<Token>, Expression,Scope>> function_scope = new();
+        public static List<Tuple<string, List<Token>, Expression>> function_scope = new();
         //Dictionary<string,int>functions=new Dictionary<string,int>();
 
         public static bool IsDefined(string id)

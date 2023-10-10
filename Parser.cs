@@ -138,7 +138,7 @@ namespace HVLK
             {
                 Console.WriteLine("The function {0} is already defined",name);return null;
             }
-            Contexto.function_scope.Add(new Tuple<string, List<Token>, Expression,Scope>(name, args, Corpus,new()));
+            Contexto.function_scope.Add(new Tuple<string, List<Token>, Expression>(name, args, Corpus));
             return new Def_Func(name, args, Corpus);
         }
         public Expression ParseExp(int parentPrecedence=0)
