@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -180,14 +181,13 @@ namespace HVLK
                 else//aun no se ha completado el token para ser add
                 {
                     int i = idx_next_char;
-                    temp += src_char;
-                    tokens.Add(new Token(temp, TokenType.unknowed,i)); temp = string.Empty;
+                    string error = Extract_unknowed();
+                    tokens.Add(new Token(error, TokenType.unknowed,i)); temp = string.Empty;
+                    Program.errors.Add(new Error($"LEXICAL ERROR:The token \"{error}\" is not a valid token in HULK on col: ",i));
                     NextChar();
                 }
 
-            }
-            
-            
+            }          
             tokens.Add(new Token("", TokenType.token_EOF,idx_next_char)); cadena= string.Empty;idx_next_char= 0;
             return tokens;
         }
@@ -205,7 +205,6 @@ namespace HVLK
         {
             src_char = cadena[idx_next_char];
         }
-
         public static bool Is_empty(char c)
         {
             if (c == ' ')
@@ -290,6 +289,24 @@ namespace HVLK
                 return true;
             }
             return false;
+        }
+        public static string Extract_unknowed()
+        {
+            while (!Is_empty(src_char))
+            {
+                temp += src_char;
+                NextChar();
+                if (!next_is_EOL())
+                {
+                    ReadChar();
+                }
+                else
+                {
+                    return temp;
+                }
+            }
+            return temp;
+
         }
         public static string Extract_Identifier()
         {

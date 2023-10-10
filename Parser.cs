@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,23 +22,25 @@ namespace HVLK
 
     interface IParser
     {
-        Expression Parse(List<Token> tokens);
+        Expression Parse();
     }
     public class RecursiveParser : IParser
     {
         Token[] tokens;
         int nextToken;
-
-        public Expression Parse(List<Token> tokens)
+        public RecursiveParser(List<Token> tokens)
         {
-            this.tokens = tokens.ToArray();
-            nextToken = 0;
+            this.tokens= tokens.ToArray();
+            nextToken=0;
+        }
 
+        public Expression Parse()
+        {
             var AST = ParseStat();
-            if (!Match_value(";")) { Console.WriteLine("Missing ';' after statament"); return null;}
+            if (!Match_value(";")) {return new Error("Missing ';' after statament in col:",tokens[nextToken-1].Index);}
             Match(Lexer.TokenType.token_EOF);
-            if(AST==null)return null;
-           
+            if(AST==null) return new Error("Is not a valid statament in HULK language in col:", tokens[nextToken - 1].Index);
+
             else return AST;
         }
         bool Match(Lexer.TokenType type)
@@ -91,54 +94,6 @@ namespace HVLK
         {
 
             int currToken = nextToken;
-            if (Match_value("let"))
-            {
-                if (Match(Lexer.TokenType.identifier))
-                {
-                    string identifier_1 = tokens[nextToken - 1].Value;
-                    if (Match_value("="))
-                    {
-                        var value_1 = ParseExp();
-                        if (Contexto.IsDefined(identifier_1))
-                        {
-                            Console.WriteLine("The var {0} is already defined", identifier_1); return null;
-                        }
-                        Contexto.variables_scope.Add(identifier_1, value_1);
-                        int currtoken = nextToken;
-                        if (Match(Lexer.TokenType.coma))
-                        {
-                            var identifier_2 = tokens[nextToken++].Value;
-                            Match_value("=");
-                            var value_2 = ParseExp();
-                            Match(Lexer.TokenType.keyword);
-                            var in_E = ParseStat();
-
-                            if (Contexto.IsDefined(identifier_2))
-                            {
-                                Console.WriteLine("The var {0} is already defined",identifier_2);return null;
-                            }
-                            Contexto.variables_scope.Add(identifier_2, value_2);
-                            return new Letvar(identifier_1, identifier_2, value_1, value_2, in_E);
-                        }
-                        nextToken = currtoken;
-                        Match(Lexer.TokenType.keyword);
-                        var inE = ParseStat();
-                        return new Letvar(identifier_1, null, value_1, null, inE);
-                        //Falta definirla(definirlas)
-                    }
-                }              
-            }
-            nextToken = currToken;
-            if (Match_value("print"))//Parsea PRINT
-            {
-                if (Match(Lexer.TokenType.leftparenthesis))
-                {
-                    var inE = ParseStat();
-                    Match(Lexer.TokenType.rigthparenthesis);
-                    return new Print(inE);
-                }
-            }           
-            nextToken = currToken;
             if ( Match_value("if"))//Parea if_else
             {
                 Match(Lexer.TokenType.leftparenthesis);
@@ -153,9 +108,10 @@ namespace HVLK
             nextToken = currToken;
             if (Match_value("function"))//Parsea funcion
             {
-                BuildFunction();
+                var a =BuildFunction();
+                if (a != null) return a;
 
-                return null;
+                else return null;
             }
             nextToken = currToken;
             var e = ParseExp();
@@ -168,25 +124,24 @@ namespace HVLK
             string name = tokens[nextToken++].Value;
             Match(Lexer.TokenType.leftparenthesis);
             List<Token> args = new List<Token>();
-            if(Match(Lexer.TokenType.identifier)) 
-            { args.Add(tokens[nextToken - 1]); }
+            if (!Match(Lexer.TokenType.rigthparenthesis)) args.Add(tokens[nextToken - 1]);
+            else nextToken -= 1;
             while (!Match(Lexer.TokenType.rigthparenthesis))
             {
                 nextToken -= 1;
                 Match(Lexer.TokenType.coma);
-                args.Add(tokens[nextToken - 1]);
+                args.Add(tokens[nextToken++]);
             }
-            Match(Lexer.TokenType.rigthparenthesis);
             Match_value("=>");
             var Corpus=ParseStat();
-       /*    if(Contexto.FunctionDefined(name))
+            if (Contexto.IsFunctionDefined(name))
             {
-            Console.WriteLine("Semantic error:the function {0} is already defined",name);return null;
-            }*/
+                Console.WriteLine("The function {0} is already defined",name);return null;
+            }
+            Contexto.function_scope.Add(new Tuple<string, List<Token>, Expression,Scope>(name, args, Corpus,new()));
             return new Def_Func(name, args, Corpus);
-            //Falta definirla 
         }
-        private Expression ParseExp(int parentPrecedence=0)
+        public Expression ParseExp(int parentPrecedence=0)
         {
             Expression left;
             var unaryOperatorPrecedence = GetUnaryOperatorPrecedence(tokens[nextToken].Type);
@@ -211,6 +166,43 @@ namespace HVLK
         Expression ParseExpAtomicLevel()//agregar llamado a funcion matematica
         {
             int currToken = nextToken;
+            if (Match_value("let"))
+            {
+                if (Match(Lexer.TokenType.identifier))
+                {
+                    string identifier_1 = tokens[nextToken - 1].Value;
+                    if (Match_value("="))
+                    {
+                        var value_1 = ParseExp();
+                        if (Contexto.IsDefined(identifier_1))
+                        {
+                            return new Error($"The var {identifier_1} is already defined", tokens[nextToken - 4].Index);
+                        }
+                        Contexto.variables_scope.Add(new Tuple<string,Expression>(identifier_1, value_1));
+                        int currtoken = nextToken;
+                        if (Match(Lexer.TokenType.coma))
+                        {
+                            var identifier_2 = tokens[nextToken++].Value;
+                            Match_value("=");
+                            var value_2 = ParseExp();
+                            Match(Lexer.TokenType.keyword);
+                            var in_E = ParseStat();
+
+                            if (Contexto.IsDefined(identifier_2))
+                            {
+                                return new Error($"The var {identifier_2} is already defined", tokens[nextToken - 4].Index);
+                            }
+                            Contexto.variables_scope.Add(new Tuple<string, Expression>(identifier_2, value_2));
+                            return new Letvar(identifier_1, identifier_2, value_1, value_2, in_E);
+                        }
+                        nextToken = currtoken;
+                        Match_value("in");
+                        var inE = ParseStat();
+                        return new Letvar(identifier_1, null, value_1, null, inE);
+                    }
+                }
+            }
+            nextToken = currToken;
             if (Match(Lexer.TokenType.number))//Parsea número
             {
                 return new Number(tokens[nextToken - 1].Value);
@@ -234,7 +226,8 @@ namespace HVLK
                 if (Match(Lexer.TokenType.leftparenthesis))
                 {
                     List<Expression> args = new List<Expression>();
-                    args.Add(ParseExp());
+                    if (!Match(Lexer.TokenType.rigthparenthesis)) { nextToken -= 1; args.Add(ParseExp()); }
+                    else nextToken -= 1;
                     int current = nextToken;
                     while (!Match(Lexer.TokenType.rigthparenthesis))
                     {
@@ -271,6 +264,16 @@ namespace HVLK
                     var a = ParseExp();
                     Match(Lexer.TokenType.rigthparenthesis);
                     return new Math_Func(operation,a);
+                }
+            }
+            nextToken = currToken;
+            if (Match_value("print"))//Parsea PRINT
+            {
+                if (Match(Lexer.TokenType.leftparenthesis))
+                {
+                    var inE = ParseStat();
+                    Match(Lexer.TokenType.rigthparenthesis);
+                    return new Print(inE);
                 }
             }
             nextToken = currToken;

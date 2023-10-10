@@ -1,4 +1,6 @@
-﻿namespace HVLK
+﻿using System.Threading.Channels;
+
+namespace HVLK
 {
 	/*public interface IContext
 	{
@@ -98,7 +100,9 @@
 		}
 		public override object Evaluate()
 		{
-			return expr.Evaluate();
+			var result= expr.Evaluate();
+            Console.WriteLine(result);
+            return result;
 		}
 	}
 	public class Def_Func : Expression
@@ -107,7 +111,7 @@
 		public List<Token> args;
 		public Expression Body;
 
-		public Def_Func(string _name, List<Token> _args, Expression expr)
+		public  Def_Func(string _name, List<Token> _args, Expression expr)
 		{
 			name = _name;
 			args = _args;
@@ -115,7 +119,7 @@
 		}
         public override object Evaluate()
         {
-            return Body.Evaluate();
+            return $"The function {name} has been defined succesfully";
         }
     }
 	public class BinaryExpr : Expression
@@ -202,9 +206,39 @@
 			identifier = id;
 			args = _args;
 		}
-		public override object Evaluate()//////////////////FALTA
+		public override object Evaluate()
 		{
-			throw new NotImplementedException();
+			object result=null;
+			foreach(var item in Contexto.function_scope)
+			{
+				if (item.Item1 == identifier)
+				{
+					if (item.Item2.Count != args.Count)
+					{
+                        return new Error($"Still you don´t give all the arguments for function {identifier} on line: ",1);
+                    }
+					for(int i = 0; i < args.Count; i++)
+					{
+						var a = args[i].Evaluate(); //Evaluar antes de llevar a expresion para el proximo llamado si no , stackoverflow
+						var toks = Lexer.Tokenizar(a.ToString());
+						var l = new RecursiveParser(toks);
+						var exp = l.ParseExp();
+						Contexto.variables_scope.Add(new Tuple<string,Expression>(item.Item2[i].Value, exp));
+					}
+					Program.MAX_IT++;
+					if(Program.MAX_IT == 2500)
+					{
+						Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +2500 function calls on line :", 1));break;
+					}
+                    result = item.Item3.Evaluate();
+					return result;
+				}
+			}
+			if (Program.errors.Count > 0) return Program.errors[0];
+			else
+			{
+				Contexto.Reset(); return result;
+			}
 		}
 	}
 
@@ -220,12 +254,14 @@
 		{
 			for (int i = Contexto.variables_scope.Count - 1; i >= 0; i--)
 			{
-				if (Contexto.variables_scope.ContainsKey(identifier))			
+				if (Contexto.variables_scope[i].Item1==identifier)			
 				{
-					return Contexto.variables_scope[identifier].Evaluate();
+					var value= Contexto.variables_scope[i].Item2.Evaluate();
+					//Eliminar la variable una vez que se use 
+                    return value;
 				}
 			}
-			return null;
+			return new Error($"Does´nt exist the var {identifier} on the actual context on line: ",0).Evaluate();
 		}
 	}
 	public class Ctx:Expression
