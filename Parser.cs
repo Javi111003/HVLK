@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -37,9 +38,9 @@ namespace HVLK
         public Expression Parse()
         {
             var AST = ParseStat();
-            if (!Match_value(";")) {return new Error("Missing ';' after statament in col:",tokens[nextToken-1].Index);}
+            if (!Match_value(";")) { Program.errors.Add(new Error("Missing ';' after statament in col:", tokens[nextToken - 1].Index)); }
             Match(Lexer.TokenType.token_EOF);
-            if(AST==null) return new Error("Is not a valid statament in HULK language in col:", tokens[nextToken - 1].Index);
+            if (AST == null){ Program.errors.Add(new Error("Is not a valid statament in HULK language in col:", tokens[nextToken - 1].Index)); return null; }
 
             else return AST;
         }
@@ -96,11 +97,11 @@ namespace HVLK
             int currToken = nextToken;
             if ( Match_value("if"))//Parea if_else
             {
-                Match(Lexer.TokenType.leftparenthesis);
+                if (!Match(Lexer.TokenType.leftparenthesis)) { Program.errors.Add(new Error("Syntax ERROR:Missing \" ( \"  before if_expression on col:", tokens[nextToken].Index)) ; nextToken -= 1; }
                 var condition = ParseExp();
-                Match(Lexer.TokenType.rigthparenthesis);
+                if (!Match(Lexer.TokenType.rigthparenthesis)) { Program.errors.Add(new Error("Syntax ERROR:Missing \" ) \"  after if_expression on col:", tokens[nextToken].Index)); nextToken -= 1; }
                 var ifexpression = ParseStat();
-                Match_value("else");
+                if (!Match_value("else")) { Program.errors.Add(new Error("Syntax ERROR:Missing \" else \"  on \"if_else\" expression on col:", tokens[nextToken].Index)); nextToken -= 1; }
                 var elseexpression = ParseStat();
 
                 return new If_Else_Exp(condition, ifexpression, elseexpression);
@@ -122,23 +123,23 @@ namespace HVLK
         Expression BuildFunction()
         {
             string name = tokens[nextToken++].Value;
-            Match(Lexer.TokenType.leftparenthesis);
+            if(!Match(Lexer.TokenType.leftparenthesis)){ Program.errors.Add(new Error("Syntax ERROR:Missing \" ( \"  before function name on col:", tokens[nextToken].Index)); nextToken -= 1; }
             List<Token> args = new List<Token>();
-            if (!Match(Lexer.TokenType.rigthparenthesis)) args.Add(tokens[nextToken - 1]);
+            if (!Match(Lexer.TokenType.rigthparenthesis)){ args.Add(tokens[nextToken - 1]); }
             else nextToken -= 1;
             while (!Match(Lexer.TokenType.rigthparenthesis))
             {
                 nextToken -= 1;
-                Match(Lexer.TokenType.coma);
+                if (!Match(Lexer.TokenType.coma)) { { Program.errors.Add(new Error("Syntax ERROR:Missing \" , \" on col:", tokens[nextToken].Index)); nextToken -= 1; } }
                 args.Add(tokens[nextToken++]);
             }
-            Match_value("=>");
+            if(!Match_value("=>")) { Program.errors.Add(new Error("Syntax ERROR:EXcepted \" => \"  before function_body on col:", tokens[nextToken].Index)); nextToken -= 1; }
             var Corpus=ParseStat();
             if (Contexto.IsFunctionDefined(name))
             {
-                Console.WriteLine("The function {0} is already defined",name);return null;
+               Program.errors.Add(new Error($"The function {name} is already defined on line: ",1));
             }
-            Contexto.function_scope.Add(new Tuple<string, List<Token>, Expression>(name, args, Corpus));
+            if (Program.errors.Count == 0) { Contexto.function_scope.Add(new Tuple<string, List<Token>, Expression>(name, args, Corpus)); }           
             return new Def_Func(name, args, Corpus);
         }
         public Expression ParseExp(int parentPrecedence=0)
@@ -174,29 +175,24 @@ namespace HVLK
                     if (Match_value("="))
                     {
                         var value_1 = ParseExp();
-                        if (Contexto.IsDefined(identifier_1))
-                        {
-                            return new Error($"The var {identifier_1} is already defined", tokens[nextToken - 4].Index);
-                        }
-                        Contexto.variables_scope.Add(new Tuple<string,Expression>(identifier_1, value_1));
+                        if (Program.errors.Count == 0) Contexto.variables_scope.Add(new Tuple<string, Expression>(identifier_1, value_1));
+                        else return null;
                         int currtoken = nextToken;
                         if (Match(Lexer.TokenType.coma))
                         {
                             var identifier_2 = tokens[nextToken++].Value;
                             Match_value("=");
                             var value_2 = ParseExp();
-                            Match(Lexer.TokenType.keyword);
+                            if (!Match_value("in")){ Program.errors.Add(new Error("Syntax ERROR:Missing \" in \" on let_in expression on col:", tokens[nextToken].Index)); nextToken -= 1; }
                             var in_E = ParseStat();
 
-                            if (Contexto.IsDefined(identifier_2))
-                            {
-                                return new Error($"The var {identifier_2} is already defined", tokens[nextToken - 4].Index);
-                            }
-                            Contexto.variables_scope.Add(new Tuple<string, Expression>(identifier_2, value_2));
+                            if (Program.errors.Count == 0) Contexto.variables_scope.Add(new Tuple<string, Expression>(identifier_2, value_2));
+                            else return null;
+
                             return new Letvar(identifier_1, identifier_2, value_1, value_2, in_E);
                         }
                         nextToken = currtoken;
-                        Match_value("in");
+                        if(!Match_value("in")) { Program.errors.Add(new Error("Syntax ERROR:Missing \" in \" on let_in expression on col:", tokens[nextToken].Index)); nextToken -= 1; }
                         var inE = ParseStat();
                         return new Letvar(identifier_1, null, value_1, null, inE);
                     }
@@ -211,12 +207,8 @@ namespace HVLK
             if (Match(Lexer.TokenType.leftparenthesis)) //Parsea (E)
             {
                 var inE = ParseExp();
-                if (Match(Lexer.TokenType.rigthparenthesis))
-                {
-                    return new ParenE(inE);
-                }
-                nextToken = currToken;
-                Console.WriteLine("Missing close parenthesis')'");
+                if (!Match(Lexer.TokenType.rigthparenthesis)) { Program.errors.Add(new Error("Syntax ERROR:Missing \" ) \" on col:", tokens[nextToken].Index)); nextToken -= 1; }                 
+                return new ParenE(inE);         
             }
             nextToken = currToken;
             if (Match(Lexer.TokenType.identifier))//Parsea variable o llamada a funcion
@@ -269,12 +261,11 @@ namespace HVLK
             nextToken = currToken;
             if (Match_value("print"))//Parsea PRINT
             {
-                if (Match(Lexer.TokenType.leftparenthesis))
-                {
-                    var inE = ParseStat();
-                    Match(Lexer.TokenType.rigthparenthesis);
-                    return new Print(inE);
-                }
+                if (!Match(Lexer.TokenType.leftparenthesis)) { Program.errors.Add(new Error("Syntax ERROR:Missing \" ( \" on col:", tokens[nextToken].Index)); nextToken -= 1; }               
+                var inE = ParseStat();
+                if (!Match(Lexer.TokenType.rigthparenthesis)) { Program.errors.Add(new Error("Syntax ERROR:Missing \" ) \" on col:", tokens[nextToken].Index)); nextToken -= 1; }
+                return new Print(inE);
+                
             }
             nextToken = currToken;
             if (Match_value("PI"))

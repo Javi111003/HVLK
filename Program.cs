@@ -12,6 +12,7 @@ namespace HVLK
         public static int MAX_IT = 0; 
         public static void Main(string[] args)
        {            
+            Console.Clear();
             while (true)//arreglar log y exp,arreglar funciones  y argumentos; no se confundan con variables en scope,posible solucion es que cada function tenga un scope propio para almacenar argumentos
             {
                 Console.ForegroundColor = ConsoleColor.Green;

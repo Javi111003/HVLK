@@ -238,7 +238,7 @@ namespace HVLK
 					}
 					aux.Clear();
                     result = item.Item3.Evaluate();
-					Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
+					if(Contexto.variables_scope.Count!=0)Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
 					return result;
 				}
 			}
@@ -318,7 +318,7 @@ namespace HVLK
 		}
 		public override object Evaluate()
 		{
-			return (string)lit;
+			return (string) $"\"{lit}\"";
 		}
 	}
 	public class ParenE : Expression

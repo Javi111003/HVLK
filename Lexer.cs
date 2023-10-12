@@ -474,6 +474,7 @@ namespace HVLK
                 }
                 else
                 {
+                    Program.errors.Add(new Error("Missing \' \" \' after lit_string body on col: ", idx_next_char));
                     return temp;
                 }
 
