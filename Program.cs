@@ -32,7 +32,6 @@ namespace HVLK
                 if (errors.Count > 0) { foreach (Error error in errors) { error.Evaluate(); } CleanErrors(); continue; }
 
                 object result = AST.Evaluate();
-                Console.WriteLine(result);
                 Contexto.Reset();
                 CleanErrors();
             }

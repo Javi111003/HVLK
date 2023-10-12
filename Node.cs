@@ -185,6 +185,7 @@ namespace HVLK
                     aux.Clear();
                     result = item.Item3.Evaluate();
                     if (Contexto.variables_scope.Count != 0) Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
+                    Console.WriteLine(result);
                     return result;
                 }
             }
