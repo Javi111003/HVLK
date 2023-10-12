@@ -7,4 +7,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="lib\Expressions\" />
+    <Folder Include="lib\Lexer\" />
+    <Folder Include="lib\Parser\" />
+  </ItemGroup>
+
 </Project>

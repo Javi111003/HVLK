@@ -15,8 +15,8 @@ namespace HVLK
         public static char src_char;//almacena el caracter actual 
         public static char next_char;//almacena el caracter siguiente
 
-        public static List<string> Maths = new List<string>() { "sqrt", "rand", "sen", "cos", "exp" ,"log"};
-        public static List<string> Palabras_reservadas = new List<string>() { "true", "false", "let", "number", "print", "PI", "E", "in", "function", "if","else" };
+        public static List<string> Maths = new List<string>() { "sqrt", "rand", "sen", "cos", "exp", "log" };
+        public static List<string> Palabras_reservadas = new List<string>() { "true", "false", "let", "number", "print", "PI", "E", "in", "function", "if", "else" };
         public static string temp = string.Empty;//almacena el token hasta ser completado
         public enum TokenType
         {
@@ -66,37 +66,37 @@ namespace HVLK
                 else if (src_char == ',')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token(",", TokenType.coma,i)); NextChar();
+                    tokens.Add(new Token(",", TokenType.coma, i)); NextChar();
                 }
                 else if (src_char == '@')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("@", TokenType.concat,i)); NextChar();
+                    tokens.Add(new Token("@", TokenType.concat, i)); NextChar();
                 }
                 else if (src_char == '\"')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token(Extract_String(), TokenType.lit_string,i)); temp = string.Empty;
+                    tokens.Add(new Token(Extract_String(), TokenType.lit_string, i)); temp = string.Empty;
                 }
                 else if (src_char == '(')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("(", TokenType.leftparenthesis,i)); NextChar();
+                    tokens.Add(new Token("(", TokenType.leftparenthesis, i)); NextChar();
                 }
                 else if (src_char == ')')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token(")", TokenType.rigthparenthesis,i)); NextChar();
+                    tokens.Add(new Token(")", TokenType.rigthparenthesis, i)); NextChar();
                 }
                 else if (src_char == '+')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("+", TokenType.sum,i)); NextChar();
+                    tokens.Add(new Token("+", TokenType.sum, i)); NextChar();
                 }
                 else if (src_char == '-')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("-", TokenType.minus,i)); NextChar();
+                    tokens.Add(new Token("-", TokenType.minus, i)); NextChar();
                 }
                 else if (src_char == '/')
                 {
@@ -104,34 +104,34 @@ namespace HVLK
                     NextChar();
                     if (next_char == '/')
                     {
-                        NextChar();break;
+                        NextChar(); break;
                     }
-                    tokens.Add(new Token("/", TokenType.divide,i));
+                    tokens.Add(new Token("/", TokenType.divide, i));
                 }
                 else if (src_char == '\n')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("\n", TokenType.token_EOL,i)); NextChar();
+                    tokens.Add(new Token("\n", TokenType.token_EOL, i)); NextChar();
                 }
-                else if(src_char==';')
+                else if (src_char == ';')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token(";", TokenType.token_EOS,i)); NextChar();
+                    tokens.Add(new Token(";", TokenType.token_EOS, i)); NextChar();
                 }
                 else if (src_char == '*')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("*", TokenType.mult,i)); NextChar();
+                    tokens.Add(new Token("*", TokenType.mult, i)); NextChar();
                 }
                 else if (src_char == '^')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("^", TokenType.power,i)); NextChar();
+                    tokens.Add(new Token("^", TokenType.power, i)); NextChar();
                 }
                 else if (src_char == '%')
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token("%", TokenType.residous,i)); NextChar();
+                    tokens.Add(new Token("%", TokenType.residous, i)); NextChar();
                 }
                 else if (src_char == '&')
                 {
@@ -151,14 +151,25 @@ namespace HVLK
                 else if (Is_operator(src_char))
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token(Extract_Operator(), TokenType.op,i)); temp = string.Empty;
+                    tokens.Add(new Token(Extract_Operator(), TokenType.op, i)); temp = string.Empty;
                     NextChar();
                 }
                 else if (Is_num(src_char))
                 {
                     int i = idx_next_char;
-                    tokens.Add(new Token(Extract_Number(), TokenType.number,i)); temp = string.Empty;
+                    temp = Extract_Number();
+                    if (Is_litup(src_char) || Is_litlow(src_char))
+                    {
+                        string error = Extract_unknowed();
+                        tokens.Add(new Token(error, TokenType.unknowed, i)); temp = string.Empty;
+                        Program.errors.Add(new Error($"LEXICAL ERROR:The token \"{error}\" is not a valid token in HULK on col: ", i));
+                        NextChar();
 
+                    }
+                    else
+                    {
+                        tokens.Add(new Token(temp, TokenType.number, i)); temp = string.Empty;
+                    }
                 }
                 else if (Is_litup(src_char) || Is_litlow(src_char))
                 {
@@ -175,20 +186,20 @@ namespace HVLK
                     }
                     else
                     {
-                        tokens.Add(new Token(temp, TokenType.identifier, i)); temp = string.Empty;                              
+                        tokens.Add(new Token(temp, TokenType.identifier, i)); temp = string.Empty;
                     }
                 }
                 else//aun no se ha completado el token para ser add
                 {
                     int i = idx_next_char;
                     string error = Extract_unknowed();
-                    tokens.Add(new Token(error, TokenType.unknowed,i)); temp = string.Empty;
-                    Program.errors.Add(new Error($"LEXICAL ERROR:The token \"{error}\" is not a valid token in HULK on col: ",i));
+                    tokens.Add(new Token(error, TokenType.unknowed, i)); temp = string.Empty;
+                    Program.errors.Add(new Error($"LEXICAL ERROR:The token \"{error}\" is not a valid token in HULK on col: ", i));
                     NextChar();
                 }
 
-            }          
-            tokens.Add(new Token("", TokenType.token_EOF,idx_next_char)); cadena= string.Empty;idx_next_char= 0;
+            }
+            tokens.Add(new Token("", TokenType.token_EOF, idx_next_char)); cadena = string.Empty; idx_next_char = 0;
             return tokens;
         }
 
@@ -216,7 +227,7 @@ namespace HVLK
 
         public static bool Is_operator(char c)
         {
-            char[] operadores = new char[] { '<', '>', '='};
+            char[] operadores = new char[] { '<', '>', '=' };
 
             for (int i = 0; i < operadores.Length; i++)
             {
@@ -310,7 +321,7 @@ namespace HVLK
         }
         public static string Extract_Identifier()
         {
-            while (Is_litup(src_char) || Is_litlow(src_char)||Is_num(src_char))
+            while (Is_litup(src_char) || Is_litlow(src_char) || Is_num(src_char))
             {
                 temp += src_char;
                 NextChar();
@@ -436,13 +447,13 @@ namespace HVLK
         public static string Extract_Number()
         {
             int c = 0;
-            while (Is_num(src_char) || (src_char == '.' && c != 1))
+            while (Is_num(src_char) || src_char == '.' && c != 1)
             {
-               
+
                 temp += src_char;
                 NextChar();
                 if (!next_is_EOL())
-                {                   
+                {
                     if (src_char == '.')
                     {
                         c++;
@@ -454,6 +465,7 @@ namespace HVLK
                     return temp;
                 }
             }
+
             return temp;
         }
         public static string Extract_String()
@@ -463,7 +475,7 @@ namespace HVLK
             {
                 ReadChar();
             }
-            while (src_char != '\"') 
+            while (src_char != '\"')
             {
                 temp += src_char;
                 NextChar();
@@ -479,7 +491,7 @@ namespace HVLK
                 }
 
             }
-          NextChar();
+            NextChar();
             return temp;
         }
     }

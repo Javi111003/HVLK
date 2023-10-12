@@ -8,7 +8,7 @@ namespace HVLK
 {
     public class Contexto
     {
-        public static List<Tuple<string,Expression>>variables_scope= new();
+        public static List<Tuple<string, Expression>> variables_scope = new();
         public static List<Tuple<string, List<Token>, Expression>> function_scope = new();
         //Dictionary<string,int>functions=new Dictionary<string,int>();
 
@@ -16,7 +16,7 @@ namespace HVLK
         {
             foreach (var item in variables_scope)
             {
-                if (item.Item1==id)
+                if (item.Item1 == id)
                 {
                     return true;
                 }
@@ -25,7 +25,7 @@ namespace HVLK
         }
         public static bool IsFunctionDefined(string id)
         {
-            foreach(var item in Contexto.function_scope)
+            foreach (var item in function_scope)
             {
                 if (item.Item1 == id)
                 {
@@ -36,9 +36,9 @@ namespace HVLK
         }
         public static void Reset()
         {
-            Contexto.variables_scope = new();
+            variables_scope = new();
         }
     }
-   
+
 }
 

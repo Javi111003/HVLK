@@ -2,396 +2,342 @@
 
 namespace HVLK
 {
-	/*public interface IContext
-	{
-		bool IsDefined(string variable);
-		bool IsDefined(string funcion, int args);
-		bool Define(string variable);
-		bool Define(string funcion, string[] args);
-		IContext CreateChildContext();
-	}
+  
 
-	public class Context : IContext
-	{
-		IContext parent;
-		HashSet<string> variables = new HashSet<string>();
-		Dictionary<string, string[]> functions = new Dictionary<string, string[]>();
+    public abstract class Node
+    {
+        protected List<Node> children = new List<Node>();
 
-		public bool IsDefined(string variable)//verifica si la variable ha sido definida 
-		{
-			if (variables.Contains(variable) || (parent != null && parent.IsDefined(variable)))
-			{
-				return true;
-			}
-			return false;
-		}
-		public bool IsDefined(string function, int args)//verifica si la funcion ya ha sido definida
-		{
-			if (functions.ContainsKey(function))
-			{
-				return true;
-			}
-			else return false;
-		}
-		public bool Define(string variable)
-		{
-			return variables.Add(variable);//definimos la variable
-		}
-		public bool Define(string function, string[] args)
-		{
-			if (functions.ContainsKey(function))//si no esta definida
-			{
-				return false;
-			}
+    }
+    public abstract class Expression : Node
+    {
+        public abstract object Evaluate();
 
-			functions[function] = args;//la definimos
-			return true;
+    }
+    public class Letvar : Expression
+    {
+        string identifier1;
+        string identifier2;
+        Expression value1;
+        Expression value2;
+        Expression inE;
 
-		}
-		public IContext CreateChildContext()
-		{
-			return new Context() { parent = this };
-		}
-	}
+        public Letvar(string _id1, string _id2, Expression expr1, Expression expr2, Expression _inE)
+        {
+            identifier1 = _id1;
+            identifier2 = _id2;
+            value1 = expr1;
+            value2 = expr2;
+            inE = _inE;
+        }
+        public override object Evaluate()
+        {
+            return inE.Evaluate();
+        }
 
+    }
+    public class Print : Expression
+    {
+        public Expression expr;
 
-	]
-	*/
-
-	public abstract class Node
-	{
-		protected List<Node> children=new List<Node>();
-
-	}
-	public abstract class Expression : Node
-	{
-		public abstract object Evaluate();
-
-	}
-	public class Letvar : Expression
-	{
-		string identifier1;
-		string identifier2;
-		Expression value1;
-		Expression value2;
-		Expression inE;
-
-		public Letvar(string _id1, string _id2, Expression expr1, Expression expr2, Expression _inE)
-		{
-			identifier1 = _id1;
-			identifier2 = _id2;
-			value1 = expr1;
-			value2 = expr2;
-			inE = _inE;
-		}
-		public override object Evaluate()
-		{
-			return inE.Evaluate();
-		}
-
-	}
-	public class Print : Expression
-	{
-		public Expression expr;
-
-		public Print(Expression _expr)
-		{
-			expr = _expr;
-		}
-		public override object Evaluate()
-		{
-			var result= expr.Evaluate();
+        public Print(Expression _expr)
+        {
+            expr = _expr;
+        }
+        public override object Evaluate()
+        {
+            var result = expr.Evaluate();
             Console.WriteLine(result);
             return result;
-		}
-	}
-	public class Def_Func : Expression
-	{
-		public string name;
-		public List<Token> args;
-		public Expression Body;
+        }
+    }
+    public class Def_Func : Expression
+    {
+        public string name;
+        public List<Token> args;
+        public Expression Body;
 
-		public  Def_Func(string _name, List<Token> _args, Expression expr)
-		{
-			name = _name;
-			args = _args;
-			Body = expr;
-		}
+        public Def_Func(string _name, List<Token> _args, Expression expr)
+        {
+            name = _name;
+            args = _args;
+            Body = expr;
+        }
         public override object Evaluate()
         {
             return $"The function {name} has been defined succesfully";
         }
     }
-	public class BinaryExpr : Expression
-	{
-		public Token Op;
-		public Expression MI;
-		public Expression MD;
-
-		public BinaryExpr(Token op, Expression L, Expression R)
-		{
-			Op = op;
-			MI = L;
-			MD = R;
-		}
-		public override object Evaluate()
-		{
-			switch (Op.Type)
-			{
-				case Lexer.TokenType.sum: return (double)MI.Evaluate() + (double)MD.Evaluate();
-
-				case Lexer.TokenType.minus: return (double)MI.Evaluate() - (double)MD.Evaluate();
-
-				case Lexer.TokenType.mult: return (double)MI.Evaluate() * (double)MD.Evaluate();
-
-				case Lexer.TokenType.divide: return (double)MI.Evaluate() / (double)MD.Evaluate();
-
-				case Lexer.TokenType.residous: return (double)MI.Evaluate() % (double)MD.Evaluate();
-
-				case Lexer.TokenType.power: return Math.Pow((double)MI.Evaluate() ,(double)MD.Evaluate());
-
-				default:return Evaluateboolean();
-
-			}
-		}
-		public object Evaluateboolean()
-		{
-			switch(Op.Value)
-			{
-				case ">": return (bool)((double)MI.Evaluate() > (double)MD.Evaluate());
-				case ">=": return (bool)((double)MI.Evaluate() >= (double)MD.Evaluate());
-				case "<": return (bool)((double)MI.Evaluate() < (double)MD.Evaluate());
-				case "<=": return (bool)((double)MI.Evaluate() <= (double)MD.Evaluate());
-				case "==": return (bool)((double)MI.Evaluate() == (double)MD.Evaluate());
-				case "!=": return (bool)((double)MI.Evaluate() != (double)MD.Evaluate());
-
-				default:return 0;
-			}
-		}
-	}
-	public class UnaryExpression : Expression
+    public class BinaryExpr : Expression
     {
-		Token Op;
-		Expression MD;
-		public UnaryExpression(Token op,Expression e)
+        public Token Op;
+        public Expression MI;
+        public Expression MD;
+
+        public BinaryExpr(Token op, Expression L, Expression R)
         {
-			Op = op;
-			MD= e;
+            Op = op;
+            MI = L;
+            MD = R;
+        }
+        public override object Evaluate()
+        {
+            switch (Op.Type)
+            {
+                case Lexer.TokenType.sum: return (double)MI.Evaluate() + (double)MD.Evaluate();
+
+                case Lexer.TokenType.minus: return (double)MI.Evaluate() - (double)MD.Evaluate();
+
+                case Lexer.TokenType.mult: return (double)MI.Evaluate() * (double)MD.Evaluate();
+
+                case Lexer.TokenType.divide: return (double)MI.Evaluate() / (double)MD.Evaluate();
+
+                case Lexer.TokenType.residous: return (double)MI.Evaluate() % (double)MD.Evaluate();
+
+                case Lexer.TokenType.power: return Math.Pow((double)MI.Evaluate(), (double)MD.Evaluate());
+
+                default: return Evaluateboolean();
+
+            }
+        }
+        public object Evaluateboolean()
+        {
+            switch (Op.Value)
+            {
+                case ">": return (double)MI.Evaluate() > (double)MD.Evaluate();
+                case ">=": return (double)MI.Evaluate() >= (double)MD.Evaluate();
+                case "<": return (double)MI.Evaluate() < (double)MD.Evaluate();
+                case "<=": return (double)MI.Evaluate() <= (double)MD.Evaluate();
+                case "==": return (double)MI.Evaluate() == (double)MD.Evaluate();
+                case "!=": return (double)MI.Evaluate() != (double)MD.Evaluate();
+
+                default: return 0;
+            }
+        }
+    }
+    public class UnaryExpression : Expression
+    {
+        Token Op;
+        Expression MD;
+        public UnaryExpression(Token op, Expression e)
+        {
+            Op = op;
+            MD = e;
 
         }
         public override object Evaluate()
         {
             if (Op.Type == Lexer.TokenType.minus)
             {
-				return -(double)MD.Evaluate();
+                return -(double)MD.Evaluate();
             }
-			else if (Op.Type == Lexer.TokenType.sum)
+            else if (Op.Type == Lexer.TokenType.sum)
             {
-				return MD;
+                return MD;
             }
-			else if(Op.Value=="!")
-			{
-				return !(bool)MD.Evaluate();
-			}
-			return MD;
+            else if (Op.Value == "!")
+            {
+                return !(bool)MD.Evaluate();
+            }
+            return MD;
         }
     }
-	public class Func_call : Expression
-	{
-		public string identifier;
-		public List<Expression> args;
+    public class Func_call : Expression
+    {
+        public string identifier;
+        public List<Expression> args;
 
-		public Func_call(string id, List<Expression> _args)
-		{
-			identifier = id;
-			args = _args;
-		}
-		public override object Evaluate()
-		{
-			
-			object result=null;
-			foreach(var item in Contexto.function_scope)
-			{
-				List<Tuple<string,Expression>> aux = new List<Tuple<string,Expression>>();
-				if (item.Item1 == identifier)
-				{
-					if (item.Item2.Count != args.Count)
-					{
-                        return new Error($"Still you don´t give all the arguments for function {identifier} on line: ",1);
+        public Func_call(string id, List<Expression> _args)
+        {
+            identifier = id;
+            args = _args;
+        }
+        public override object Evaluate()
+        {
+
+            object result = null;
+            foreach (var item in Contexto.function_scope)
+            {
+                List<Tuple<string, Expression>> aux = new List<Tuple<string, Expression>>();
+                if (item.Item1 == identifier)
+                {
+                    if (item.Item2.Count != args.Count)
+                    {
+                        Program.errors.Add(new Error($"Still you don´t give all the arguments for function {identifier} on line: ", 1)); return null;
                     }
-					for(int i = 0; i < args.Count; i++)
-					{
-						var a = args[i].Evaluate();
-						var toks = Lexer.Tokenizar(a.ToString());
-						var l = new RecursiveParser(toks);
-						var exp = l.ParseExp();
-						aux.Add(new Tuple<string,Expression>(item.Item2[i].Value, exp));
-					}
-					Program.MAX_IT++;
-					/*if(Program.MAX_IT == 25000)
+                    for (int i = 0; i < args.Count; i++)
+                    {
+                        var a = args[i].Evaluate();
+                        var toks = Lexer.Tokenizar(a.ToString());
+                        var l = new RecursiveParser(toks);
+                        var exp = l.ParseExp();
+                        aux.Add(new Tuple<string, Expression>(item.Item2[i].Value, exp));
+                    }
+                    Program.MAX_IT++;
+                    /*if(Program.MAX_IT == 25000)
 					{
 						Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +2500 function calls on line :", 1));break;
 					}*/
-					for (int i = 0; i < aux.Count; i++)
-					{
-						Contexto.variables_scope.Add(aux[i]);
-					}
-					aux.Clear();
+                    for (int i = 0; i < aux.Count; i++)
+                    {
+                        Contexto.variables_scope.Add(aux[i]);
+                    }
+                    aux.Clear();
                     result = item.Item3.Evaluate();
-					if(Contexto.variables_scope.Count!=0)Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
-					return result;
-				}
-			}
-			if (Program.errors.Count > 0) return Program.errors[0];
-			else
-			{
-				Contexto.Reset(); return result;
-			}
-		}
-	}
-
-	public class Variable : Expression
-	{
-		public string identifier;
-
-		public Variable(string name)
-		{
-			identifier = name;
-		}
-		public override object Evaluate()
-		{
-			for (int i = Contexto.variables_scope.Count - 1; i >= 0; i--)
-			{
-				if (Contexto.variables_scope[i].Item1==identifier)			
-				{
-					var value= Contexto.variables_scope[i].Item2.Evaluate();
-					//Eliminar la variable una vez que se use 
-                    return value;
-				}
-			}
-			return new Error($"Does´nt exist the var {identifier} on the actual context on line: ",0).Evaluate();
-		}
-	}
-	public class Ctx:Expression
-	{
-		Dictionary<string, double> constantes = new Dictionary<string, double>();
-		Dictionary<string, double> ctxs = new Dictionary<string, double>();
-		string id;
-
-		public Ctx(string _id)
-		{
-			ctxs["PI"] = 3.14;
-			ctxs["E"] = 2.36;
-			id = _id;
-		}
-		public double Get(string name)
-		{
-			double _value = ctxs[name];
-			return _value;
-		}
-        public override object Evaluate()
-        {
-			return (double)Get(id);
+                    if (Contexto.variables_scope.Count != 0) Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
+                    return result;
+                }
+            }
+            if (Program.errors.Count > 0) return Program.errors[0];
+            else
+            {
+                Contexto.Reset(); return result;
+            }
         }
     }
-	public class Number : Expression
-	{
-		public double value;
 
-		public Number(string _value)
-		{
-			value = double.Parse(_value);
-		}
-
-		public override object Evaluate()
-		{
-			return value;
-		}
-	}
-	public class Lit_String : Expression
-	{
-		public string lit;
-
-		public Lit_String(string content)
-		{
-			lit = content;
-		}
-		public override object Evaluate()
-		{
-			return (string) $"\"{lit}\"";
-		}
-	}
-	public class ParenE : Expression
+    public class Variable : Expression
     {
-		Expression inE;
-		public ParenE(Expression inside)
+        public string identifier;
+
+        public Variable(string name)
         {
-			inE= inside;
+            identifier = name;
+        }
+        public override object Evaluate()
+        {
+            for (int i = Contexto.variables_scope.Count - 1; i >= 0; i--)
+            {
+                if (Contexto.variables_scope[i].Item1 == identifier)
+                {
+                    var value = Contexto.variables_scope[i].Item2.Evaluate();
+                    //Eliminar la variable una vez que se use 
+                    return value;
+                }
+            }
+            return new Error($"Does´nt exist the var {identifier} on the actual context on line: ", 0).Evaluate();
+        }
+    }
+    public class Ctx : Expression
+    {
+        Dictionary<string, double> constantes = new Dictionary<string, double>();
+        Dictionary<string, double> ctxs = new Dictionary<string, double>();
+        string id;
+
+        public Ctx(string _id)
+        {
+            ctxs["PI"] = 3.14;
+            ctxs["E"] = 2.36;
+            id = _id;
+        }
+        public double Get(string name)
+        {
+            double _value = ctxs[name];
+            return _value;
+        }
+        public override object Evaluate()
+        {
+            return Get(id);
+        }
+    }
+    public class Number : Expression
+    {
+        public double value;
+
+        public Number(string _value)
+        {
+            value = double.Parse(_value);
+        }
+
+        public override object Evaluate()
+        {
+            return value;
+        }
+    }
+    public class Lit_String : Expression
+    {
+        public string lit;
+
+        public Lit_String(string content)
+        {
+            lit = content;
+        }
+        public override object Evaluate()
+        {
+            return $"\"{lit}\"";
+        }
+    }
+    public class ParenE : Expression
+    {
+        Expression inE;
+        public ParenE(Expression inside)
+        {
+            inE = inside;
         }
         public override object Evaluate()
         {
             return inE.Evaluate();
         }
     }
-	public class If_Else_Exp : Expression
-	{
-		Expression condition;
-		Expression if_Exp;
-		Expression else_Exp;
-		public If_Else_Exp(Expression cond,Expression inE,Expression elseE)
+    public class If_Else_Exp : Expression
+    {
+        Expression condition;
+        Expression if_Exp;
+        Expression else_Exp;
+        public If_Else_Exp(Expression cond, Expression inE, Expression elseE)
         {
-			condition = cond;
-			if_Exp = inE;
-			else_Exp = elseE;
+            condition = cond;
+            if_Exp = inE;
+            else_Exp = elseE;
         }
         public override object Evaluate()
         {
-            if((bool)condition.Evaluate())
-			{
-				return if_Exp.Evaluate();
-			}
-			return else_Exp.Evaluate();
+            if ((bool)condition.Evaluate())
+            {
+                return if_Exp.Evaluate();
+            }
+            return else_Exp.Evaluate();
         }
     }
-	public class Math_Func : Expression
+    public class Math_Func : Expression
     {
-		Expression inside;
-		string operation;
-		public Math_Func(string _operation,Expression inE)
+        Expression inside;
+        string operation;
+        public Math_Func(string _operation, Expression inE)
         {
-			operation = _operation;
-			inside = inE;
+            operation = _operation;
+            inside = inE;
         }
         public override object Evaluate()
         {
-			Ctx E = new Ctx("E");
+            Ctx E = new Ctx("E");
             switch (operation)
             {
-				case "sen":return (double)Math.Sin((double)inside.Evaluate());
+                case "sen": return Math.Sin((double)inside.Evaluate());
 
-				case "cos": return (double)(Math.Cos((double)inside.Evaluate()));
+                case "cos": return Math.Cos((double)inside.Evaluate());
 
-				case "sqrt": return (double)Math.Sqrt((double)inside.Evaluate());
+                case "sqrt": return Math.Sqrt((double)inside.Evaluate());
 
-				case "exp": return (double)Math.Pow(E.Get("E"),(double)inside.Evaluate());
+                case "exp": return Math.Pow(E.Get("E"), (double)inside.Evaluate());
 
-				default:return null;
-			}
-            
+                default: return null;
+            }
+
         }
     }
-	public class Math_Log: Expression
+    public class Math_Log : Expression
     {
-		Expression bas;
-		Expression uper;
-		public Math_Log(Expression _bas ,Expression up)
+        Expression bas;
+        Expression uper;
+        public Math_Log(Expression _bas, Expression up)
         {
-			bas = _bas; 
-			uper = up;
+            bas = _bas;
+            uper = up;
         }
         public override object Evaluate()
         {
-			return (double)(Math.Log((double)uper.Evaluate(), (double)bas.Evaluate()));
+            return Math.Log((double)uper.Evaluate(), (double)bas.Evaluate());
         }
     }
 }

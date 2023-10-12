@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HVLK
 {
-     public class Error:Expression
+    public class Error : Expression
     {
         string message;
         int position;
@@ -17,10 +17,10 @@ namespace HVLK
         }
         public override object Evaluate()
         {
-            string result= this.message + $"{position}";
+            string result = message + $"{position}";
             Console.WriteLine(result);
-            return this.message + $"{position}";
+            return message + $"{position}";
         }
     }
-   
+
 }
