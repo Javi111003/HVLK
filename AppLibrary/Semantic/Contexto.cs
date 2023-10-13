@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using HVLK;
 
+
 namespace HVLK
 {
     public class Contexto
     {
-        public static List<Tuple<string, Expression>> variables_scope = new();
-        public static List<Tuple<string, List<Token>, Expression>> function_scope = new();
+        public static List<Tuple<string, Expression>> variables_scope = new();//almacena las variables
+        public static List<Tuple<string, List<Token>, Expression>> function_scope = new();//almacena las funciones
         //Dictionary<string,int>functions=new Dictionary<string,int>();
 
         public static bool IsDefined(string id)
@@ -35,7 +36,7 @@ namespace HVLK
             }
             return false;
         }
-        public static void Reset()
+        public static void Reset()//restablecer el contexto de variables ya que son "in_line"
         {
             variables_scope = new();
         }

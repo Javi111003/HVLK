@@ -269,9 +269,19 @@ namespace HVLK
 
             }
             nextToken = currToken;
-            if (Match_value("PI"))
+            if (Match_value("PI"))//Parsea alguna de las constantes
             {
                 return new Ctx("PI");
+            }
+            nextToken=currToken;
+            if (Match_value("true"))
+            {
+                return new TokenBoolean("true");
+            }
+            nextToken = currToken;
+            if (Match_value("false"))
+            {
+                return new TokenBoolean("false");
             }
             nextToken = currToken;
             if (Match_value("E"))

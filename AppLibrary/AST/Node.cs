@@ -1,6 +1,7 @@
 ﻿using System.Threading.Channels;
 using HVLK;
 
+
 namespace HVLK
 {
 
@@ -111,6 +112,8 @@ namespace HVLK
                 case "<=": return (double)MI.Evaluate() <= (double)MD.Evaluate();
                 case "==": return (double)MI.Evaluate() == (double)MD.Evaluate();
                 case "!=": return (double)MI.Evaluate() != (double)MD.Evaluate();
+                case "|": return (bool)MI.Evaluate() || (bool)MD.Evaluate();
+                case "&": return (bool)MI.Evaluate() && (bool)MD.Evaluate();
 
                 default: return 0;
             }
@@ -339,6 +342,21 @@ namespace HVLK
         public override object Evaluate()
         {
             return Math.Log((double)uper.Evaluate(), (double)bas.Evaluate());
+        }
+    }
+    public class TokenBoolean : Expression
+    {
+        string v;
+        public TokenBoolean(string _v)
+        {
+            v= _v;
+        }
+        public override object Evaluate()
+        {
+            if (v == "true") return true;
+
+            else return false;
+
         }
     }
 }
