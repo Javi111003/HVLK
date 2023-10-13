@@ -1,8 +1,9 @@
 ﻿using System.Threading.Channels;
+using HVLK;
 
 namespace HVLK
 {
-  
+
 
     public abstract class Node
     {
@@ -65,7 +66,7 @@ namespace HVLK
         }
         public override object Evaluate()
         {
-            return $"The function {name} has been defined succesfully";
+            return $"The function \"{name}\" has been defined succesfully";
         }
     }
     public class BinaryExpr : Expression
@@ -185,11 +186,10 @@ namespace HVLK
                     aux.Clear();
                     result = item.Item3.Evaluate();
                     if (Contexto.variables_scope.Count != 0) Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
-                    Console.WriteLine(result);
                     return result;
                 }
             }
-            if (Program.errors.Count > 0) return Program.errors[0];
+            if (Program.errors.Count > 0) return null;
             else
             {
                 Contexto.Reset(); return result;

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HVLK;
+
 
 namespace HVLK
 {
@@ -32,6 +34,8 @@ namespace HVLK
                 if (errors.Count > 0) { foreach (Error error in errors) { error.Evaluate(); } CleanErrors(); continue; }
 
                 object result = AST.Evaluate();
+                if(errors.Count>0) { foreach (Error error in errors) { error.Evaluate(); } CleanErrors(); continue; }
+                else Console.WriteLine(result);
                 Contexto.Reset();
                 CleanErrors();
             }
