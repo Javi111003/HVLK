@@ -49,7 +49,7 @@ namespace HVLK
         public override object Evaluate()
         {
             var result = expr.Evaluate();
-            Console.WriteLine(result);
+          
             return result;
         }
     }
@@ -86,17 +86,86 @@ namespace HVLK
         {
             switch (Op.Type)
             {
-                case Lexer.TokenType.sum: return (double)MI.Evaluate() + (double)MD.Evaluate();
+                case Lexer.TokenType.sum:
+                    try
+                    {
+                        return (double)MI.Evaluate() + (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '+' only can be used between two numbers on line:", Program.l));return null;
+                    }
 
-                case Lexer.TokenType.minus: return (double)MI.Evaluate() - (double)MD.Evaluate();
+                case Lexer.TokenType.minus:
+                    try
+                    {
+                        return (double)MI.Evaluate() - (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '-' only can be used between two numbers on line:", Program.l)); return null;
+                    }
 
-                case Lexer.TokenType.mult: return (double)MI.Evaluate() * (double)MD.Evaluate();
+                case Lexer.TokenType.mult:
+                    try
+                    {
+                        return (double)MI.Evaluate() * (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '*' only can be used between two numbers on line:", Program.l)); return null;
+                    }
 
-                case Lexer.TokenType.divide: return (double)MI.Evaluate() / (double)MD.Evaluate();
+                case Lexer.TokenType.divide:
+                    var MDeval = (double)MD.Evaluate();
+                    if (MDeval == 0) { Program.errors.Add(new Error("Semantic Error:The divide '/' for zero is indefined,error on line:", Program.l)); return null; }
+                    else 
+                    { 
+                        try
+                        {
+                            return (double)MI.Evaluate() / MDeval;
+                        }
+                        catch (Exception)
+                        {
+                            Program.errors.Add(new Error("Semantic Error:The operator '/' only can be used between two numbers on line:", Program.l)); return null;
+                        }
+                    }
 
-                case Lexer.TokenType.residous: return (double)MI.Evaluate() % (double)MD.Evaluate();
-
-                case Lexer.TokenType.power: return Math.Pow((double)MI.Evaluate(), (double)MD.Evaluate());
+                case Lexer.TokenType.residous:
+                    try
+                    {
+                        return (double)MI.Evaluate() % (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '%' only can be used between two numbers on line:", Program.l)); return null;
+                    }
+                case Lexer.TokenType.power:
+                    try
+                    {
+                        return Math.Pow((double)MI.Evaluate(), (double)MD.Evaluate());
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '^' only can be used between two numbers on line:", Program.l)); return null;
+                    }
+                    
+                case Lexer.TokenType.concat:
+                    try
+                    {
+                        return (string)MI.Evaluate() + MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        try
+                        {
+                            return MI.Evaluate() + (string)MD.Evaluate();
+                        }
+                        catch (Exception)
+                        {
+                            Program.errors.Add(new Error("Semantic Error:One of elements not can be converted to string , on line:", Program.l)); return null;
+                        }
+                    }
 
                 default: return Evaluateboolean();
 
@@ -106,16 +175,64 @@ namespace HVLK
         {
             switch (Op.Value)
             {
-                case ">": return (double)MI.Evaluate() > (double)MD.Evaluate();
-                case ">=": return (double)MI.Evaluate() >= (double)MD.Evaluate();
-                case "<": return (double)MI.Evaluate() < (double)MD.Evaluate();
-                case "<=": return (double)MI.Evaluate() <= (double)MD.Evaluate();
-                case "==": return (double)MI.Evaluate() == (double)MD.Evaluate();
-                case "!=": return (double)MI.Evaluate() != (double)MD.Evaluate();
+                case ">":
+                    try
+                    {
+                        return (double)MI.Evaluate() > (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '>' only can be used between two numbers on line:", Program.l)); return null;
+                    }
+                case ">=":
+                    try
+                    {
+                        return (double)MI.Evaluate() >= (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '>=' only can be used between two numbers on line:", Program.l)); return null;
+                    }
+                case "<":
+                    try
+                    {
+                        return (double)MI.Evaluate() < (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '<' only can be used between two numbers on line:", Program.l)); return null;
+                    }
+                case "<=":
+                    try
+                    {
+                        return (double)MI.Evaluate() <= (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '<=' only can be used between two numbers on line:", Program.l)); return null;
+                    }
+                case "==":
+                    try
+                    {
+                        return (double)MI.Evaluate() == (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '==' only can be used between two numbers on line:", Program.l)); return null;
+                    }
+                case "!=":
+                    try
+                    {
+                        return (double)MI.Evaluate() != (double)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '!=' only can be used between two numbers on line:", Program.l)); return null;
+                    }
                 case "|": return (bool)MI.Evaluate() || (bool)MD.Evaluate();
                 case "&": return (bool)MI.Evaluate() && (bool)MD.Evaluate();
 
-                default: return 0;
+                default: return null;
             }
         }
     }
@@ -133,17 +250,39 @@ namespace HVLK
         {
             if (Op.Type == Lexer.TokenType.minus)
             {
-                return -(double)MD.Evaluate();
+                try
+                {
+                    return -(double)MD.Evaluate();
+                }
+                catch(Exception)
+                {
+                    Program.errors.Add(new Error("Semantic Error:The operator '-' only can be used with numbers on line:", Program.l)); return null;
+                }
             }
             else if (Op.Type == Lexer.TokenType.sum)
             {
-                return MD;
+                try
+                {
+                    return MD.Evaluate();
+                }
+                catch (Exception)
+                {
+                    Program.errors.Add(new Error("Semantic Error:The operator '+' only can be used with numbers on line:", Program.l)); return null;
+                }
             }
             else if (Op.Value == "!")
             {
-                return !(bool)MD.Evaluate();
+                try
+                {
+                    return !(bool)MD.Evaluate();
+                }
+                catch (Exception)
+                {
+                    Program.errors.Add(new Error("Semantic Error:The operator '!' only can be used with booleans on line:", Program.l)); return null;
+                }
+                
             }
-            return MD;
+            return MD.Evaluate();
         }
     }
     public class Func_call : Expression
@@ -215,11 +354,11 @@ namespace HVLK
                 if (Contexto.variables_scope[i].Item1 == identifier)
                 {
                     var value = Contexto.variables_scope[i].Item2.Evaluate();
-                    //Eliminar la variable una vez que se use 
+                   
                     return value;
                 }
             }
-            return new Error($"Does´nt exist the var {identifier} on the actual context on line: ", 0).Evaluate();
+            return new Error($"Doesn't exist the var {identifier} on the actual context on line: ", 0).Evaluate();
         }
     }
     public class Ctx : Expression

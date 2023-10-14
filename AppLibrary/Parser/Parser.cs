@@ -82,6 +82,7 @@ namespace HVLK
                     return 4;
                 case Lexer.TokenType.sum:
                 case Lexer.TokenType.minus:
+                case Lexer.TokenType.concat:
                     return 3;
                 case Lexer.TokenType.op:
                     return 2;
