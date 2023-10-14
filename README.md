@@ -6,15 +6,15 @@
 
 Javier González Díaz C-113
 
-Aplicación de consola con el fin de traducir y evalauar instrucción a instrucción las líneas de entrada del usuario ,basándose
+Aplicación de consola con el fin de traducir y evaluar instrucción a instrucción las líneas de entrada del usuario ,basándose
 en las reglas semánticas , sintácticas y léxicas definidas por el lenguaje HULK(Havana University Language for Kompilers)
 
-##Acerca del uso
+## Acerca del uso:
 Lea el informe para entender la implementación que sigue nuestro intérprete y el modo de uso
 
 ## Requisitos
 
-.NET Core 6.0 
+.NET Core 7.0 
 
 ##LINUX
 
