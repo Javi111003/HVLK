@@ -7,7 +7,7 @@ using HVLK;
 
 namespace HVLK
 {
-    public class Error : Expression
+    public class Error : Expression//Errores deriva de expresion para que pueda ser devuelto por cualquiera de los componentes del compilador y puedan ser evaluados
     {
         string message;
         int position;
@@ -16,7 +16,7 @@ namespace HVLK
             message = _message;
             position = _position;
         }
-        public override object Evaluate()
+        public override object Evaluate()//Evaluan mostrando en pantalla el error , su tipo y su localizacion
         {
             string result = message + $"{position}";
             Console.WriteLine(result);

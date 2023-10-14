@@ -45,15 +45,15 @@ namespace HVLK
 
             else return AST;
         }
-        bool Match(Lexer.TokenType type)
+        bool Match(Lexer.TokenType type)//Matchear tipos predefinidos desde el lexer
         {
             return nextToken + 1 <= tokens.Length && tokens[nextToken++].Type == type;
         }
-        bool Match_value(string value)
+        bool Match_value(string value)//Matchear algunas palabras claves
         {
             return nextToken + 1 <= tokens.Length && tokens[nextToken++].Value == value;
         }
-        void MoveBack(int n)
+        void MoveBack(int n)//Mover atras el idx
         {
             nextToken -= n;
         }
@@ -169,7 +169,7 @@ namespace HVLK
         Expression ParseExpAtomicLevel()//agregar llamado a funcion matematica
         {
             int currToken = nextToken;
-            if (Match_value("let"))
+            if (Match_value("let"))//Parsea declaracion de variable 
             {
                 if (Match(Lexer.TokenType.identifier))
                 {
@@ -240,7 +240,7 @@ namespace HVLK
                 return new Lit_String(tokens[nextToken - 1].Value);
             }
             nextToken = currToken;
-            if (Match(Lexer.TokenType.Math_EXP))
+            if (Match(Lexer.TokenType.Math_EXP))//Parsea las funciones matematicas 
             {
                 if (tokens[nextToken - 1].Value == "log")
                 {
@@ -272,20 +272,20 @@ namespace HVLK
             nextToken = currToken;
             if (Match_value("PI"))//Parsea alguna de las constantes
             {
-                return new Ctx("PI");
+                return new Ctx("PI");//Parsea PI
             }
             nextToken=currToken;
-            if (Match_value("true"))
+            if (Match_value("true"))//Parsea true 
             {
                 return new TokenBoolean("true");
             }
             nextToken = currToken;
-            if (Match_value("false"))
+            if (Match_value("false"))//Parsea false
             {
                 return new TokenBoolean("false");
             }
             nextToken = currToken;
-            if (Match_value("E"))
+            if (Match_value("E"))//Parsea E
             {
                 return new Ctx("E");
             }

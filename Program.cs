@@ -16,9 +16,9 @@ namespace HVLK
         public static void Main(string[] args)
        {            
             Console.Clear();
-            string hulk = "Welcome to \" HULK Interpreter \"";
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(hulk);
+            string v2 = "\r\n                                                         )         (         )  \r\n (  (           (                             )       ( /(         )\\ )   ( /(  \r\n )\\))(   '   (  )\\             )      (    ( /(       )\\())    (  (()/(   )\\()) \r\n((_)()\\ )   ))\\((_) (   (     (      ))\\   )\\()) (   ((_)\\     )\\  /(_))|((_)\\  \r\n_(())\\_)() /((_)_   )\\  )\\    )\\  ' /((_) (_))/  )\\   _((_) _ ((_)(_))  |_ ((_) \r\n\\ \\((_)/ /(_)) | | ((_)((_) _((_)) (_))   | |_  ((_) | || || | | || |   | |/ /  \r\n \\ \\/\\/ / / -_)| |/ _|/ _ \\| '  \\()/ -_)  |  _|/ _ \\ | __ || |_| || |__   ' <   \r\n  \\_/\\_/  \\___||_|\\__|\\___/|_|_|_| \\___|   \\__|\\___/ |_||_| \\___/ |____| _|\\_\\  \r\n                                                                                \r\n";
+            Console.WriteLine(v2);
             Console.WriteLine("Let's get started---------------:");
             while (true)
             {

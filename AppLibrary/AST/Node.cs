@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using System.Xml.Linq;
 using HVLK;
 
 
@@ -6,17 +7,16 @@ namespace HVLK
 {
 
 
-    public abstract class Node
+    public abstract class Node//nodo raiz del AST
     {
         protected List<Node> children = new List<Node>();
-
     }
-    public abstract class Expression : Node
+    public abstract class Expression : Node//Clase abstracta expresion 
     {
         public abstract object Evaluate();
 
     }
-    public class Letvar : Expression
+    public class Letvar : Expression//declaracion y uso de variables inline
     {
         string identifier1;
         string identifier2;
@@ -32,13 +32,13 @@ namespace HVLK
             value2 = expr2;
             inE = _inE;
         }
-        public override object Evaluate()
+        public override object Evaluate()//Evaluando el cuerpo del "in"
         {
             return inE.Evaluate();
         }
 
     }
-    public class Print : Expression
+    public class Print : Expression//funcion Print de toda la vida
     {
         public Expression expr;
 
@@ -53,7 +53,7 @@ namespace HVLK
             return result;
         }
     }
-    public class Def_Func : Expression
+    public class Def_Func : Expression//definicion de función
     {
         public string name;
         public List<Token> args;
@@ -70,7 +70,7 @@ namespace HVLK
             return $"The function \"{name}\" has been defined succesfully";
         }
     }
-    public class BinaryExpr : Expression
+    public class BinaryExpr : Expression//Tipo que almacena todas las expresiones binarias ,tanto aritmeticas como booleanas o concatenacion de strings 
     {
         public Token Op;
         public Expression MI;
@@ -82,7 +82,7 @@ namespace HVLK
             MI = L;
             MD = R;
         }
-        public override object Evaluate()
+        public override object Evaluate()//Realiza la evaluacion según el operador y controlando los errores semanticos
         {
             switch (Op.Type)
             {
@@ -171,7 +171,7 @@ namespace HVLK
 
             }
         }
-        public object Evaluateboolean()
+        public object Evaluateboolean()//Realiza la evaluacion según el operador y controlando los errores semanticos
         {
             switch (Op.Value)
             {
@@ -236,7 +236,7 @@ namespace HVLK
             }
         }
     }
-    public class UnaryExpression : Expression
+    public class UnaryExpression : Expression//usado para que expresiones de cualquier tipo ,pueda retornar su valor negativo si es lo que se quiere y asi el parser no detecte una expresion binaria incompleta
     {
         Token Op;
         Expression MD;
@@ -246,7 +246,7 @@ namespace HVLK
             MD = e;
 
         }
-        public override object Evaluate()
+        public override object Evaluate()//Realiza la evaluacion según el operador y controlando los errores semanticos
         {
             if (Op.Type == Lexer.TokenType.minus)
             {
@@ -285,7 +285,7 @@ namespace HVLK
             return MD.Evaluate();
         }
     }
-    public class Func_call : Expression
+    public class Func_call : Expression//Almacena y evalúa llamados a funciones , adjudicando a cada llamado sus argumentos e introduciondelos en el contexto para luego ser usados y desechados al retornar el valor 
     {
         public string identifier;
         public List<Expression> args;
@@ -308,7 +308,7 @@ namespace HVLK
                     {
                         Program.errors.Add(new Error($"Still you don´t give all the arguments for function {identifier} on line: ", 1)); return null;
                     }
-                    for (int i = 0; i < args.Count; i++)
+                    for (int i = 0; i < args.Count; i++)//Garantiza aplicar cambios a los argumentos en los llamados recursivos
                     {
                         var a = args[i].Evaluate();
                         var toks = Lexer.Tokenizar(a.ToString());
@@ -316,7 +316,7 @@ namespace HVLK
                         var exp = l.ParseExp();
                         aux.Add(new Tuple<string, Expression>(item.Item2[i].Value, exp));
                     }
-                    Program.MAX_IT++;
+                    Program.MAX_IT++;//controlando stackoverflow
                     /*if(Program.MAX_IT == 25000)
 					{
 						Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +2500 function calls on line :", 1));break;
@@ -327,14 +327,14 @@ namespace HVLK
                     }
                     aux.Clear();
                     result = item.Item3.Evaluate();
-                    if (Contexto.variables_scope.Count != 0) Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);
+                    if (Contexto.variables_scope.Count != 0) Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);//Eliminando las variables que se crean en los llamados recursivos
                     return result;
                 }
             }
             if (Program.errors.Count > 0) return null;
             else
             {
-                Contexto.Reset(); return result;
+                Contexto.Reset(); return result;//Contexto limpio para retornar el resultado y esperar la proxima entrada 
             }
         }
     }
@@ -347,43 +347,41 @@ namespace HVLK
         {
             identifier = name;
         }
-        public override object Evaluate()
+        public override object Evaluate()//retorna el valor de  la expresion asignada a la variable en el momento del Analisis sintactico y construccion del AST
         {
             for (int i = Contexto.variables_scope.Count - 1; i >= 0; i--)
             {
-                if (Contexto.variables_scope[i].Item1 == identifier)
+                if (Contexto.variables_scope[i].Item1 == identifier)//Si existe la variable , retornamos el valor
                 {
                     var value = Contexto.variables_scope[i].Item2.Evaluate();
                    
                     return value;
                 }
             }
-            return new Error($"Doesn't exist the var {identifier} on the actual context on line: ", 0).Evaluate();
+            return new Error($"Doesn't exist the var {identifier} on the actual context on line: ", 0).Evaluate();//si la variable no existe 
         }
     }
-    public class Ctx : Expression
+    public class Ctx : Expression//Almacenar las constantes
     {
-        Dictionary<string, double> constantes = new Dictionary<string, double>();
         Dictionary<string, double> ctxs = new Dictionary<string, double>();
         string id;
 
         public Ctx(string _id)
         {
-            ctxs["PI"] = 3.14;
-            ctxs["E"] = 2.36;
+            ctxs["PI"] = Math.PI;
+            ctxs["E"] = Math.E;
             id = _id;
         }
         public double Get(string name)
         {
-            double _value = ctxs[name];
-            return _value;
+            return ctxs[name];
         }
-        public override object Evaluate()
+        public override object Evaluate()//obtener el valor de la constante invocada por su nombre
         {
             return Get(id);
         }
     }
-    public class Number : Expression
+    public class Number : Expression//Manejo de números
     {
         public double value;
 
@@ -397,7 +395,7 @@ namespace HVLK
             return value;
         }
     }
-    public class Lit_String : Expression
+    public class Lit_String : Expression//Manejo de strings
     {
         public string lit;
 
@@ -446,14 +444,13 @@ namespace HVLK
     {
         Expression inside;
         string operation;
-        public Math_Func(string _operation, Expression inE)
+        public Math_Func(string _operation, Expression inE)//Funciones trigonometricas exponencial y raiz cuadrada
         {
             operation = _operation;
             inside = inE;
         }
         public override object Evaluate()
         {
-            Ctx E = new Ctx("E");
             switch (operation)
             {
                 case "sen": return Math.Sin((double)inside.Evaluate());
@@ -462,14 +459,14 @@ namespace HVLK
 
                 case "sqrt": return Math.Sqrt((double)inside.Evaluate());
 
-                case "exp": return Math.Pow(E.Get("E"), (double)inside.Evaluate());
+                case "exp": return Math.Pow(Math.E, (double)inside.Evaluate());
 
                 default: return null;
             }
 
         }
     }
-    public class Math_Log : Expression
+    public class Math_Log : Expression//Funcion logaritmica
     {
         Expression bas;
         Expression uper;
@@ -483,7 +480,7 @@ namespace HVLK
             return Math.Log((double)uper.Evaluate(), (double)bas.Evaluate());
         }
     }
-    public class TokenBoolean : Expression
+    public class TokenBoolean : Expression//Manejo de true or false 
     {
         string v;
         public TokenBoolean(string _v)

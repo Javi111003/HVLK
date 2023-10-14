@@ -12,7 +12,6 @@ namespace HVLK
     {
         public static List<Tuple<string, Expression>> variables_scope = new();//almacena las variables
         public static List<Tuple<string, List<Token>, Expression>> function_scope = new();//almacena las funciones
-        //Dictionary<string,int>functions=new Dictionary<string,int>();
 
         public static bool IsDefined(string id)
         {
