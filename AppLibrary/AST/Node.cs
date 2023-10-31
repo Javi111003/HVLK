@@ -229,8 +229,24 @@ namespace HVLK
                     {
                         Program.errors.Add(new Error("Semantic Error:The operator '!=' only can be used between two numbers on line:", Program.l)); return null;
                     }
-                case "|": return (bool)MI.Evaluate() || (bool)MD.Evaluate();
-                case "&": return (bool)MI.Evaluate() && (bool)MD.Evaluate();
+                case "|":
+                    try
+                    {
+                        return (bool)MI.Evaluate() || (bool)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '|' only can be used between two booleans on line:", Program.l)); return null;
+                    }
+                case "&":
+                    try
+                    {
+                        return (bool)MI.Evaluate() && (bool)MD.Evaluate();
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("Semantic Error:The operator '&' only can be used between two booleans on line:", Program.l)); return null;
+                    }
 
                 default: return null;
             }
@@ -319,7 +335,7 @@ namespace HVLK
                     Program.MAX_IT++;//controlando stackoverflow
                     /*if(Program.MAX_IT == 25000)
 					{
-						Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +2500 function calls on line :", 1));break;
+						Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +25000 function calls on line :", 1));break;
 					}*/
                     for (int i = 0; i < aux.Count; i++)
                     {

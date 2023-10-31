@@ -93,7 +93,7 @@ namespace HVLK
                     return 0;
             }
         }
-        Expression ParseStat()//falta booleans 
+        Expression ParseStat()
         {
 
             int currToken = nextToken;
@@ -166,7 +166,7 @@ namespace HVLK
             }
             return left;
         }
-        Expression ParseExpAtomicLevel()//agregar llamado a funcion matematica
+        Expression ParseExpAtomicLevel()
         {
             int currToken = nextToken;
             if (Match_value("let"))//Parsea declaracion de variable 
@@ -270,7 +270,7 @@ namespace HVLK
 
             }
             nextToken = currToken;
-            if (Match_value("PI"))//Parsea alguna de las constantes
+            if (Match_value("PI"))
             {
                 return new Ctx("PI");//Parsea PI
             }
