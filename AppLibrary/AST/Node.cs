@@ -314,13 +314,8 @@ namespace HVLK
         }
         public override object Evaluate()
         {
-            foreach(var item in Contexto.function_scope)
-            {
-                if(item.Item1==identifier)Defined = true;
-            }
-
             object result = null;
-            if (Defined) 
+            if (Contexto.IsFunctionDefined(identifier)) //Si existe la evaluamos 
             {
                 foreach (var item in Contexto.function_scope)
                 {

@@ -275,12 +275,12 @@ namespace HVLK
                 return new Ctx("PI");//Parsea PI
             }
             nextToken=currToken;
-            if (Match_value("true"))//Parsea true 
+            if (Match_value("true")||Match_value("True"))//Parsea true 
             {
                 return new TokenBoolean("true");
             }
             nextToken = currToken;
-            if (Match_value("false"))//Parsea false
+            if (Match_value("false")||Match_value("False"))//Parsea false
             {
                 return new TokenBoolean("false");
             }

@@ -17,7 +17,7 @@ namespace HVLK
         public static char next_char;//almacena el caracter siguiente
 
         public static List<string> Maths = new List<string>() { "sqrt", "rand", "sen", "cos", "exp", "log" };
-        public static List<string> Palabras_reservadas = new List<string>() { "true", "false", "let", "number", "print", "PI", "E", "in", "function", "if", "else" };
+        public static List<string> Palabras_reservadas = new List<string>() { "true", "false", "let", "number", "print", "PI", "E", "in", "function", "if", "else" ,"True","False"};
         public static string temp = string.Empty;//almacena el token hasta ser completado
         public enum TokenType
         {
