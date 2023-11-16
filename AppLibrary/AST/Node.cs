@@ -305,6 +305,7 @@ namespace HVLK
     {
         public string identifier;
         public List<Expression> args;
+        public bool Defined;
 
         public Func_call(string id, List<Expression> _args)
         {
@@ -313,44 +314,52 @@ namespace HVLK
         }
         public override object Evaluate()
         {
+            foreach(var item in Contexto.function_scope)
+            {
+                if(item.Item1==identifier)Defined = true;
+            }
 
             object result = null;
-            foreach (var item in Contexto.function_scope)
+            if (Defined) 
             {
-                List<Tuple<string, Expression>> aux = new List<Tuple<string, Expression>>();
-                if (item.Item1 == identifier)
+                foreach (var item in Contexto.function_scope)
                 {
-                    if (item.Item2.Count != args.Count)
+                    List<Tuple<string, Expression>> aux = new List<Tuple<string, Expression>>();
+                    if (item.Item1 == identifier)
                     {
-                        Program.errors.Add(new Error($"Still you don´t give all the arguments for function {identifier} on line: ", 1)); return null;
+                        if (item.Item2.Count != args.Count)
+                        {
+                            Program.errors.Add(new Error($"Still you don´t give all the arguments for function {identifier} on line: ", 1)); return null;
+                        }
+                        for (int i = 0; i < args.Count; i++)//Garantiza aplicar cambios a los argumentos en los llamados recursivos
+                        {
+                            var a = args[i].Evaluate();
+                            var toks = Lexer.Tokenizar(a.ToString());
+                            var l = new RecursiveParser(toks);
+                            var exp = l.ParseExp();
+                            aux.Add(new Tuple<string, Expression>(item.Item2[i].Value, exp));//antes de ser añadidas al contexto
+                        }
+                        Program.MAX_IT++;//controlando stackoverflow
+                        /*if(Program.MAX_IT == 25000)
+                        {
+                            Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +25000 function calls on line :", 1));break;
+                        }*/
+                        for (int i = 0; i < aux.Count; i++)
+                        {
+                            Contexto.variables_scope.Add(aux[i]);
+                        }
+                        aux.Clear();
+                        result = item.Item3.Evaluate();
+                        if (Contexto.variables_scope.Count != 0) Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);//Eliminando las variables que se crean en los llamados recursivos
+                        return result;
                     }
-                    for (int i = 0; i < args.Count; i++)//Garantiza aplicar cambios a los argumentos en los llamados recursivos
-                    {
-                        var a = args[i].Evaluate();
-                        var toks = Lexer.Tokenizar(a.ToString());
-                        var l = new RecursiveParser(toks);
-                        var exp = l.ParseExp();
-                        aux.Add(new Tuple<string, Expression>(item.Item2[i].Value, exp));
-                    }
-                    Program.MAX_IT++;//controlando stackoverflow
-                    /*if(Program.MAX_IT == 25000)
-					{
-						Program.errors.Add(new Error("Stack Overflow:the stack is disborded for +25000 function calls on line :", 1));break;
-					}*/
-                    for (int i = 0; i < aux.Count; i++)
-                    {
-                        Contexto.variables_scope.Add(aux[i]);
-                    }
-                    aux.Clear();
-                    result = item.Item3.Evaluate();
-                    if (Contexto.variables_scope.Count != 0) Contexto.variables_scope.RemoveAt(Contexto.variables_scope.Count - 1);//Eliminando las variables que se crean en los llamados recursivos
-                    return result;
                 }
             }
+            else { Program.errors.Add(new Error($"The function \"{identifier}\" does not exist in the actual context ,line error at:", Program.l)); }
             if (Program.errors.Count > 0) return null;
             else
             {
-                Contexto.Reset(); return result;//Contexto limpio para retornar el resultado y esperar la proxima entrada 
+                return result;//Contexto limpio para retornar el resultado y esperar la proxima entrada 
             }
         }
     }
