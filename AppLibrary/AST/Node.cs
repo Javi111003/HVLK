@@ -478,11 +478,35 @@ namespace HVLK
         {
             switch (operation)
             {
-                case "sen": return Math.Sin((double)inside.Evaluate());
+                case "sen":
+                    try 
+                    {
+                        return Math.Sin((double)inside.Evaluate()); 
+                    }
+                    catch (Exception)
+                    { 
+                        Program.errors.Add(new Error("The math function \"sen\" only can be used with numbers on line:", Program.l));return null; 
+                    }
 
-                case "cos": return Math.Cos((double)inside.Evaluate());
+                case "cos":
+                    try
+                    {
+                        return Math.Cos((double)inside.Evaluate());
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("The math function \"cos\" only can be used with numbers on line:", Program.l)); return null;
+                    }
 
-                case "sqrt": return Math.Sqrt((double)inside.Evaluate());
+                case "sqrt":
+                    try
+                    {
+                        return Math.Sqrt((double)inside.Evaluate());
+                    }
+                    catch (Exception)
+                    {
+                        Program.errors.Add(new Error("The math function \"sqrt\" only can be used with numbers on line:", Program.l)); return null;
+                    }
 
                 case "exp": return Math.Pow(Math.E, (double)inside.Evaluate());
 
